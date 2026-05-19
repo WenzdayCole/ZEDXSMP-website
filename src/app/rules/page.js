@@ -1,34 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function RulesPage() {
-  const [clientData, setClientData] = useState(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const createStars = (count) => {
-        return Array.from({ length: count })
-          .map(() => {
-            const x = Math.floor(Math.random() * 2000);
-            const y = Math.floor(Math.random() * 2000);
-            const opacity = Math.random() * 0.7 + 0.3;
-            return `${x}px ${y}px rgba(255, 255, 255, ${opacity})`;
-          })
-          .join(", ");
-      };
-
-      setClientData({
-        stars: {
-          slow: createStars(150),
-          mid: createStars(100),
-          fast: createStars(50),
-        },
-      });
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
-
   const ruleSections = [
     {
       title: "Illegal Client Mods",
@@ -72,28 +45,8 @@ export default function RulesPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#050208] text-white p-4 md:p-12 lg:p-20 relative overflow-x-hidden font-sans selection:bg-purple-500/30">
-      {/* Background Stars matching Home Page */}
-      <div className="absolute inset-0 pointer-events-none">
-        {clientData && (
-          <>
-            <div
-              style={{ boxShadow: clientData.stars.slow }}
-              className="absolute w-px h-px bg-transparent animate-parallax-slow opacity-40"
-            />
-            <div
-              style={{ boxShadow: clientData.stars.mid }}
-              className="absolute w-0.5 h-0.5 bg-transparent animate-parallax-mid opacity-60"
-            />
-            <div
-              style={{ boxShadow: clientData.stars.fast }}
-              className="absolute w-1 h-1 bg-transparent animate-parallax-fast opacity-20"
-            />
-          </>
-        )}
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto">
+    <main className="relative min-h-screen overflow-x-hidden p-4 font-sans text-white selection:bg-purple-500/30 md:p-12 lg:p-20">
+      <div className="relative mx-auto max-w-7xl">
         {/* Navigation & Header */}
         <header className="mb-16 md:mb-24">
           <Link
@@ -159,30 +112,6 @@ export default function RulesPage() {
         </p>
       </footer>
 
-      <style jsx global>{`
-        @keyframes parallax {
-          from {
-            transform: translateY(0);
-          }
-          to {
-            transform: translateY(-1000px);
-          }
-        }
-        .animate-parallax-slow {
-          animation: parallax 120s linear infinite;
-        }
-        .animate-parallax-mid {
-          animation: parallax 70s linear infinite;
-        }
-        .animate-parallax-fast {
-          animation: parallax 40s linear infinite;
-        }
-        body {
-          background: #050208;
-          margin: 0;
-          overflow-x: hidden;
-        }
-      `}</style>
     </main>
   );
 }

@@ -1,414 +1,293 @@
 "use client";
-import React, { useMemo, useSyncExternalStore, useState } from "react";
-import Link from "next/link";
 
-// --- HYDRATION HELPER ---
-const subscribe = () => () => {};
-function useIsMounted() {
-  return useSyncExternalStore(
-    subscribe,
-    () => true,
-    () => false,
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useCheckout } from "@/context/CheckoutContext";
+import { monthlyRanks as rankDetails } from "@/data/monthly-ranks";
+
+function RankAccentBar({ rank }) {
+  if (rank.isGradient) {
+    return (
+      <div className="h-1 w-full rounded-full bg-gradient-to-r from-[#00C3FF] via-purple-500 to-[#FF55FF]" />
+    );
+  }
+  return (
+    <div
+      className="h-1 w-full rounded-full"
+      style={{ backgroundColor: rank.accent }}
+    />
+  );
+}
+
+function FeatureCard({ title, children }) {
+  return (
+    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-sm transition-colors hover:border-white/15 hover:bg-white/[0.05]">
+      <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/40">
+        {title}
+      </h4>
+      {children}
+    </div>
+  );
+}
+
+function RankSection({ rank, index, checkout, isLoading }) {
+  const hasKit = rank.kit.items.length > 0;
+  const accentColor = rank.isGradient ? rank.secondaryAccent : rank.accent;
+
+  return (
+    <motion.section
+      id={rank.id}
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5, delay: index * 0.05 }}
+      className="scroll-mt-28"
+    >
+      <div
+        className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[#0a0a12]/80 p-6 sm:p-8 md:p-10"
+        style={{
+          boxShadow: `0 0 80px -20px ${rank.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        }}
+      >
+        <div
+          className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full blur-[100px]"
+          style={{ backgroundColor: rank.glow }}
+        />
+
+        <RankAccentBar rank={rank} />
+
+        <div className="relative mt-8 flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
+          <div className="lg:w-[min(100%,340px)] lg:shrink-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-mono text-[10px] font-bold text-white/25">
+                0{index + 1}
+              </span>
+              {rank.popular && (
+                <span className="rounded-full bg-purple-600 px-3 py-1 text-[9px] font-black uppercase tracking-[0.25em] text-white">
+                  Most popular
+                </span>
+              )}
+              <span
+                className="text-[10px] font-black uppercase tracking-[0.3em]"
+                style={{ color: accentColor }}
+              >
+                {rank.tagline}
+              </span>
+            </div>
+
+            <h2
+              className={`mt-3 text-5xl font-black uppercase italic leading-none tracking-tighter sm:text-6xl md:text-7xl ${
+                rank.isGradient
+                  ? "bg-gradient-to-r from-[#00C3FF] to-[#FF55FF] bg-clip-text text-transparent"
+                  : ""
+              }`}
+              style={!rank.isGradient ? { color: rank.accent } : undefined}
+            >
+              {rank.name}
+            </h2>
+
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/50">
+              {rank.description}
+            </p>
+
+            <div className="mt-8 rounded-2xl border border-white/10 bg-black/40 p-6">
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono text-4xl font-black text-white sm:text-5xl">
+                  {rank.price}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+                  / month
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  checkout(rank.tebexPackageId, rank.name, { price: rank.price })
+                }
+                disabled={isLoading(rank.name)}
+                className="mt-6 w-full min-h-[52px] rounded-xl bg-white py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-black transition-all hover:bg-purple-500 hover:text-white active:scale-[0.98] disabled:opacity-50"
+                style={{ boxShadow: `0 8px 32px -8px ${rank.glow}` }}
+              >
+                {isLoading(rank.name) ? "Opening checkout…" : `Get ${rank.name}`}
+              </button>
+
+              <Link
+                href="/ranks"
+                className="mt-4 block text-center text-[10px] text-white/35 transition-colors hover:text-white/60"
+              >
+                ← Back to store overview
+              </Link>
+            </div>
+          </div>
+
+          <div className="min-w-0 flex-1 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FeatureCard title="Commands">
+                <ul className="space-y-2">
+                  {rank.commands.map((cmd) => (
+                    <li
+                      key={cmd}
+                      className="flex items-center gap-2 font-mono text-xs text-white/70"
+                    >
+                      <span style={{ color: accentColor }} className="opacity-80">
+                        ›
+                      </span>
+                      {cmd}
+                    </li>
+                  ))}
+                </ul>
+              </FeatureCard>
+
+              <FeatureCard title="Perks">
+                <ul className="space-y-2.5">
+                  {rank.perks.map((perk) => (
+                    <li
+                      key={perk}
+                      className="flex items-start gap-2 text-[12px] font-medium leading-snug text-white/65"
+                    >
+                      <span
+                        className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: accentColor }}
+                      />
+                      {perk}
+                    </li>
+                  ))}
+                </ul>
+              </FeatureCard>
+            </div>
+
+            <div
+              className={`rounded-2xl border p-6 ${
+                hasKit
+                  ? "border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent"
+                  : "border-dashed border-white/10 bg-white/[0.02]"
+              }`}
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h4
+                    className={`text-xl font-black uppercase italic tracking-tight ${
+                      rank.isGradient
+                        ? "bg-gradient-to-r from-[#00C3FF] to-[#FF55FF] bg-clip-text text-transparent"
+                        : ""
+                    }`}
+                    style={!rank.isGradient ? { color: rank.accent } : undefined}
+                  >
+                    {rank.kit.name}
+                  </h4>
+                  {rank.kit.cooldown && (
+                    <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-white/35">
+                      Cooldown · {rank.kit.cooldown}
+                    </p>
+                  )}
+                </div>
+                {!hasKit && (
+                  <span className="text-[10px] uppercase tracking-widest text-white/25">
+                    Upgrade for kits
+                  </span>
+                )}
+              </div>
+
+              {hasKit && (
+                <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+                  {rank.kit.items.map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-center gap-2 rounded-xl border border-white/5 bg-black/30 px-3 py-2.5 text-[11px] font-semibold text-white/75"
+                    >
+                      <span style={{ color: accentColor }}>✦</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.section>
   );
 }
 
 export default function AboutPage() {
-  const isMounted = useIsMounted();
-  const [loadingId, setLoadingId] = useState(null);
-
-  const handleCheckout = async (priceId, rankName) => {
-    if (!priceId || priceId.includes("REPLACE")) {
-      alert("Please add the real Price ID for this item!");
-      return;
-    }
-    setLoadingId(rankName);
-    try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Checkout Error: " + data.error);
-      }
-    } catch (err) {
-      alert("Network error. Make sure your server is running!");
-    } finally {
-      setLoadingId(null);
-    }
-  };
-
-  const starLayers = useMemo(() => {
-    if (!isMounted) return { slow: "", mid: "" };
-    function createStars(count) {
-      return Array.from({ length: count })
-        .map(() => {
-          const x = Math.floor(Math.random() * 2000);
-          const y = Math.floor(Math.random() * 2000);
-          const opacity = Math.random() * 0.7 + 0.3;
-          return `${x}px ${y}px rgba(255, 255, 255, ${opacity})`;
-        })
-        .join(", ");
-    }
-    return { slow: createStars(150), mid: createStars(100) };
-  }, [isMounted]);
-
-  const rankDetails = [
-    {
-      id: "vip",
-      name: "VIP",
-      tagline: "COAL TIER FOUNDATION",
-      price: "£4.99",
-      priceId: "price_1TL2E1Ju3HDD8mZsL6DvEtuW",
-      color: "#FFFF55",
-      description:
-        "The VIP rank provides the essential tools for any serious survivalist. It focuses on inventory management and basic automation to keep you in the mines longer.",
-      commands: ["/back", "/clearinventory", "/near", "/condense"],
-      perks: [
-        "Homes: Set up to 5 locations",
-        "Auctions: List 5 items simultaneously",
-        "Keep XP: Never lose levels on death",
-        "Vaults: 1 Private Vault (/pv 1)",
-        "Colored Signs: Use color codes",
-        "RTP: 1 Minute Cooldown",
-      ],
-      kit: {
-        name: "Coal Kit",
-        cooldown: "7 Days",
-        items: [
-          "Full Iron Armor (Unbreaking I)",
-          "Iron Toolset (Unbreaking I)",
-          "4x Protection I Books",
-          "1x Sharpness I / Efficiency I Books",
-          "128x Experience Bottles",
-          "64x Steak & 8x Golden Apples",
-        ],
-      },
-    },
-    {
-      id: "mvp",
-      name: "MVP",
-      tagline: "IRON TIER ELITE",
-      price: "£9.99",
-      priceId: "REPLACE_WITH_MVP_ID",
-      color: "#FFAA00",
-      popular: true,
-      description:
-        "MVP is designed for the combat-heavy player. With portable furnaces and spawner mining, you can set up shop anywhere in the world and stay there indefinitely.",
-      commands: ["/feed", "/furnace", "/condense", "/recipe", "/repair"],
-      perks: [
-        "Homes: Set up to 10 locations",
-        "Auctions: List 10 items simultaneously",
-        "Join Full Server: Guaranteed access",
-        "Spawners: Mine with Silk Touch",
-        "Vaults: 3 Private Vaults (/pv 1-3)",
-        "RTP: 30 Second Cooldown",
-      ],
-      kit: {
-        name: "Iron Kit",
-        cooldown: "5 Days",
-        items: [
-          "Full Diamond Armor (Protection II)",
-          "Diamond Toolset (Efficiency III)",
-          "4x Protection III Books",
-          "1x Sharpness III / Fortune II Books",
-          "256x Experience Bottles",
-          "64x Cooked Pork & 16x Golden Apples",
-        ],
-      },
-    },
-    {
-      id: "zedx",
-      name: "ZEDX",
-      tagline: "GOLD TIER CHAMPION",
-      price: "£14.99",
-      priceId: "REPLACE_WITH_ZEDX_ID",
-      color: "#00C3FF",
-      description:
-        "The ZEDX rank offers ultimate portability. Access your crafting table and vaults from anywhere, and enjoy the highest survival utility available.",
-      commands: [
-        "/craft",
-        "/pv",
-        "/repair all",
-        "/enderchest",
-        "/fly (Lobby Only)",
-      ],
-      perks: [
-        "Homes: Set up to 25 locations",
-        "Auctions: List 20 items simultaneously",
-        "Spawners: Mine WITHOUT Silk Touch",
-        "Vaults: 10 Private Vaults (/pv 1-10)",
-        "RTP: Instant (No Cooldown)",
-        "Chat: Access to HEX Color Codes",
-      ],
-      kit: {
-        name: "Gold Kit",
-        cooldown: "3 Days",
-        items: [
-          "Full Diamond Armor (Protection IV)",
-          "Diamond Toolset (Efficiency V / Fortune III)",
-          "4x Protection IV Books",
-          "1x Sharpness V / Silk Touch Books",
-          "512x Experience Bottles",
-          "32x Enchanted Golden Apples",
-        ],
-      },
-    },
-    {
-      id: "zedx-plus",
-      name: "ZEDX+",
-      tagline: "NETHERITE TIER DEITY",
-      price: "£19.99",
-      priceId: "REPLACE_WITH_ZEDXPLUS_ID",
-      color: "#FF55FF",
-      description:
-        "The peak of existence. ZEDX+ grants you the powers of a god, including full survival flight and access to the server's most protected vaults and kits.",
-      commands: ["/fly (Everywhere)", "/god", "/heal", "/fix all", "/rename"],
-      perks: [
-        "Homes: Unlimited locations",
-        "Auctions: List 50 items simultaneously",
-        "Vaults: 50 Private Vaults (/pv 1-50)",
-        "Anti-Grief: Priority protection",
-        "Disposal Signs: Create [Disposal]",
-        "Exclusive: Bold Blue Tag + Pink '+'",
-      ],
-      kit: {
-        name: "Netherite Kit",
-        cooldown: "48 Hours",
-        items: [
-          "Full Netherite Armor (Protection V)",
-          "Netherite Toolset (Eff VII / Fortune IV)",
-          "8x Protection V / Sharpness VI Books",
-          "4x Mending / Unbreaking IV Books",
-          "2048x Experience Bottles",
-          "64x Enchanted Golden Apples",
-        ],
-      },
-    },
-  ];
+  const { checkout, isLoading } = useCheckout();
 
   return (
-    <main className="min-h-screen bg-[#050208] text-white font-sans selection:bg-purple-500/30">
-      {/* Background Star FX */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        {isMounted && (
-          <>
-            <div
-              style={{ boxShadow: starLayers.slow }}
-              className="absolute w-px h-px bg-transparent animate-parallax-slow opacity-20"
-            />
-            <div
-              style={{ boxShadow: starLayers.mid }}
-              className="absolute w-0.5 h-0.5 bg-transparent animate-parallax-mid opacity-40"
-            />
-          </>
-        )}
+    <main className="min-h-screen text-white selection:bg-purple-500/30">
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute left-1/2 top-0 h-[480px] w-[min(100%,900px)] -translate-x-1/2 bg-purple-600/12 blur-[120px]" />
       </div>
 
-      {/* Sticky Header */}
-      <nav className="fixed top-0 w-full z-50 bg-[#050208]/80 backdrop-blur-lg border-b border-white/5 p-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <nav className="fixed top-0 z-50 w-full border-b border-white/5 bg-[#050208]/75 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Link
             href="/ranks"
-            className="font-black italic text-xl tracking-tighter uppercase group"
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-white/50 transition-colors hover:text-white"
           >
-            <span className="text-purple-500 group-hover:text-white transition-colors">
-              ←
-            </span>{" "}
-            BACK TO STORE
+            <span className="text-purple-400">←</span> Store
           </Link>
-          <div className="hidden md:flex gap-6 uppercase text-[10px] font-black tracking-widest text-white/40">
+          <div className="flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {rankDetails.map((r) => (
               <a
                 key={r.id}
                 href={`#${r.id}`}
-                className="hover:text-white transition-colors"
+                className="shrink-0 rounded-lg px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-white/40 transition-colors hover:bg-white/5 hover:text-white"
               >
-                {r.name}
+                <span
+                  style={!r.isGradient ? { color: r.accent } : undefined}
+                  className={
+                    r.isGradient
+                      ? "bg-gradient-to-r from-[#00C3FF] to-[#FF55FF] bg-clip-text text-transparent"
+                      : ""
+                  }
+                >
+                  {r.name}
+                </span>
               </a>
             ))}
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-40 pb-20 px-6 text-center">
-        <h1 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter leading-none mb-4">
-          RANK <span className="text-purple-500">INTEL</span>
+      <header className="relative z-10 px-4 pb-12 pt-28 text-center sm:px-6 sm:pt-32">
+        <h1 className="text-5xl font-black uppercase italic tracking-tighter sm:text-7xl md:text-8xl">
+          <span className="bg-gradient-to-b from-white via-white/90 to-purple-400 bg-clip-text text-transparent">
+            Rank Details
+          </span>
         </h1>
-        <p className="max-w-2xl mx-auto text-white/40 text-[10px] uppercase tracking-[0.4em] font-black">
-          Command Access • Economic Perks • God-Tier Kits
+        <p className="mx-auto mt-6 max-w-md text-sm text-white/45">
+          Full breakdown of commands, perks, and kits. Purchase any rank — checkout
+          takes under a minute on Tebex.
         </p>
-      </section>
+        <Link
+          href="/ranks"
+          className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/15 bg-white/5 px-6 text-[10px] font-black uppercase tracking-widest text-white/70 transition-colors hover:border-purple-500/40 hover:text-white"
+        >
+          View store cards
+        </Link>
+      </header>
 
-      {/* Detailed Sections */}
-      <div className="relative z-10">
-        {rankDetails.map((rank) => (
-          <section
+      <div className="relative z-10 mx-auto max-w-6xl space-y-10 px-4 pb-24 sm:px-6 sm:space-y-14">
+        {rankDetails.map((rank, index) => (
+          <RankSection
             key={rank.id}
-            id={rank.id}
-            className="py-24 border-t border-white/5 scroll-mt-20"
-          >
-            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-16">
-              {/* Left Column: Core Info */}
-              <div className="lg:col-span-5 space-y-8">
-                <div>
-                  <div className="flex items-center gap-4 mb-6">
-                    <span
-                      className="text-[10px] font-black uppercase tracking-[0.4em] px-3 py-1 bg-white/5 rounded-full inline-block"
-                      style={{ color: rank.color }}
-                    >
-                      {rank.tagline}
-                    </span>
-                    {rank.popular && (
-                      <span className="text-[10px] font-black uppercase tracking-[0.4em] px-3 py-1 bg-purple-600 rounded-full inline-block">
-                        MOST POPULAR
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="text-7xl md:text-8xl font-black italic uppercase tracking-tighter mb-6 leading-none">
-                    {rank.name}
-                  </h2>
-                  <p className="text-lg text-white/50 leading-relaxed font-medium">
-                    {rank.description}
-                  </p>
-                </div>
-
-                <div className="p-10 rounded-[2.5rem] bg-white/5 border border-white/10">
-                  <div className="flex items-baseline gap-2 mb-8">
-                    <span className="text-6xl font-mono font-black">
-                      {rank.price}
-                    </span>
-                    <span className="text-white/20 text-xs font-bold uppercase tracking-widest">
-                      / Monthly
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => handleCheckout(rank.priceId, rank.name)}
-                    className="w-full py-6 rounded-2xl bg-white text-black font-black uppercase tracking-[0.2em] text-[11px] hover:bg-purple-500 hover:text-white transition-all transform active:scale-95 shadow-xl"
-                  >
-                    {loadingId === rank.name
-                      ? "PROCESSING..."
-                      : `PURCHASE ${rank.name}`}
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Column: Technical Grid */}
-              <div className="lg:col-span-7 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Commands */}
-                  <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
-                    <h4 className="text-purple-500 text-[10px] font-black uppercase tracking-widest mb-4">
-                      Commands
-                    </h4>
-                    <ul className="space-y-2">
-                      {rank.commands.map((cmd) => (
-                        <li
-                          key={cmd}
-                          className="text-xs font-mono text-white/60 flex items-center gap-2"
-                        >
-                          <span className="text-purple-400 font-bold">
-                            {">"}
-                          </span>{" "}
-                          {cmd}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  {/* Perks */}
-                  <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
-                    <h4 className="text-purple-500 text-[10px] font-black uppercase tracking-widest mb-4">
-                      Core Perks
-                    </h4>
-                    <ul className="space-y-2">
-                      {rank.perks.map((perk) => (
-                        <li
-                          key={perk}
-                          className="text-[11px] font-bold text-white/60 flex items-center gap-2"
-                        >
-                          <div className="w-1 h-1 rounded-full bg-white/20" />{" "}
-                          {perk}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Kit Display */}
-                <div className="p-8 rounded-[2.5rem] bg-linear-to-br from-white/10 to-transparent border border-white/10 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <h3 className="text-8xl font-black italic uppercase tracking-tighter"></h3>
-                  </div>
-                  <div className="relative z-10">
-                    <div className="mb-6">
-                      <h4
-                        className="text-3xl font-black italic uppercase tracking-tight mb-1"
-                        style={{ color: rank.color }}
-                      >
-                        {rank.kit.name}
-                      </h4>
-                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">
-                        Usable every {rank.kit.cooldown}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                      {rank.kit.items.map((item, i) => (
-                        <div
-                          key={i}
-                          className="text-[11px] font-bold text-white/70 flex items-center gap-3 py-1.5 border-b border-white/5"
-                        >
-                          <span className="text-purple-500">✦</span> {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+            rank={rank}
+            index={index}
+            checkout={checkout}
+            isLoading={isLoading}
+          />
         ))}
       </div>
 
-      <footer className="py-32 text-center border-t border-white/5">
+      <footer className="relative z-10 border-t border-white/5 py-16 text-center">
         <Link
           href="/ranks"
-          className="text-white/20 hover:text-white transition-colors uppercase text-[10px] font-black tracking-[0.5em] group"
+          className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 transition-colors hover:text-white"
         >
-          <span className="inline-block group-hover:-translate-x-2 transition-transform mr-4">
-            ←
-          </span>
-          Return to Store Overview
+          ← Return to store
         </Link>
       </footer>
-
-      <style jsx global>{`
-        @keyframes parallax {
-          from {
-            transform: translateY(0);
-          }
-          to {
-            transform: translateY(-1000px);
-          }
-        }
-        .animate-parallax-slow {
-          animation: parallax 120s linear infinite;
-        }
-        .animate-parallax-mid {
-          animation: parallax 70s linear infinite;
-        }
-        html {
-          scroll-behavior: smooth;
-        }
-        body {
-          background: #050208;
-          margin: 0;
-          overflow-x: hidden;
-        }
-      `}</style>
     </main>
   );
 }

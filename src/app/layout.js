@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import AppProviders from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 // 1. Metadata Configuration
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://zedxsmp.fun";
+
 export const metadata = {
-  metadataBase: new URL("http://localhost:3000"), // Change to https://zedxsmp.fun when live!
+  metadataBase: new URL(siteUrl),
   title: {
     default: "ZEDX SMP | The Ultimate Vanilla+ Experience",
     template: "%s | ZEDX SMP",
@@ -56,6 +59,9 @@ export const metadata = {
 // 2. Viewport Configuration
 export const viewport = {
   themeColor: "#9333ea",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }) {
@@ -67,10 +73,13 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} scroll-smooth`}
       suppressHydrationWarning
     >
-      <body className="bg-black text-white antialiased selection:bg-purple-600/30 selection:text-purple-200">
-        <div className="min-h-screen flex flex-col bg-dark-zedx">
-          {children}
-        </div>
+      <head>
+        <link rel="preconnect" href="https://pay.tebex.io" />
+        <link rel="preconnect" href="https://headless.tebex.io" />
+        <link rel="dns-prefetch" href="https://js.tebex.io" />
+      </head>
+      <body className="flex min-h-screen flex-col bg-[#050208] text-white antialiased selection:bg-purple-600/30 selection:text-purple-200">
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

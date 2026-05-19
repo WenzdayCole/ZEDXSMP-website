@@ -1,0 +1,37 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@import",
+      "description": "CSS import (Tailwind: @import \"tailwindcss\")"
+    },
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4 theme tokens"
+    },
+    {
+      "name": "@layer",
+      "description": "Tailwind cascade layer"
+    },
+    {
+      "name": "@apply",
+      "description": "Apply Tailwind utility classes"
+    },
+    {
+      "name": "@source",
+      "description": "Tailwind content sources"
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind custom utility"
+    },
+    {
+      "name": "@variant",
+      "description": "Tailwind custom variant"
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Tailwind custom variant alias"
+    }
+  ]
+}

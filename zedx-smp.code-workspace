@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "name": "zedx-smp",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "css.validate": false,
+    "css.lint.unknownAtRules": "ignore",
+    "css.customData": [".vscode/tailwind.css-data.json"],
+    "files.associations": {
+      "*.css": "tailwindcss"
+    },
+    "tailwindCSS.experimental.configFile": "src/app/globals.css",
+    "tailwindCSS.showLintErrors": false,
+    "tailwindCSS.lint.cssConflict": "ignore",
+    "tailwindCSS.lint.invalidApply": "ignore",
+    "tailwindCSS.lint.invalidConfigPath": "ignore",
+    "tailwindCSS.lint.invalidScreen": "ignore",
+    "tailwindCSS.lint.invalidTailwindDirective": "ignore",
+    "tailwindCSS.lint.invalidVariant": "ignore",
+    "tailwindCSS.lint.recommendedVariantOrder": "ignore"
+  },
+  "extensions": {
+    "recommendations": ["bradlc.vscode-tailwindcss", "dbaeumer.vscode-eslint"]
+  }
+}
