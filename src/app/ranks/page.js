@@ -38,7 +38,7 @@ export default function RanksPage() {
   const crateKeys = [
     {
       name: "Common",
-      price: "£3.19",
+      price: "£1.19",
       color: "text-[#00FFFF]",
       border: "border-cyan-500/20",
       hover: "hover:border-cyan-500/50",
