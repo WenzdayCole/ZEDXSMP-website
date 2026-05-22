@@ -7,6 +7,7 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ["framer-motion"],
+    optimizeCss: true,
   },
   compress: true,
 };
