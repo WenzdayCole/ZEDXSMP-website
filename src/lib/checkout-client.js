@@ -1,4 +1,11 @@
 import { sanitizeMinecraftUsername } from "@/lib/minecraft-username";
+import { buildPayCheckoutUrl } from "@/lib/tebex-js";
+
+function isMinecraftLoginMessage(text) {
+  return /sign in with your minecraft|must login|login before adding/i.test(
+    String(text || ""),
+  );
+}
 
 export async function startTebexCheckout({ packageId, username }) {
   const response = await fetch("/api/tebex-checkout", {
@@ -7,6 +14,8 @@ export async function startTebexCheckout({ packageId, username }) {
     body: JSON.stringify({
       packageId: Number(packageId),
       username: sanitizeMinecraftUsername(username),
+      returnOrigin:
+        typeof window !== "undefined" ? window.location.origin : undefined,
     }),
   });
 
@@ -37,10 +46,34 @@ export async function startTebexCheckout({ packageId, username }) {
     };
   }
 
-  if (data.requiresAuth && !hasUrl) {
+  const needsMinecraftLogin =
+    data.requiresAuth || isMinecraftLoginMessage(data.error);
+
+  if (needsMinecraftLogin) {
+    const authUrl =
+      data.url || (data.ident ? buildPayCheckoutUrl(data.ident) : null);
+
+    if (authUrl) {
+      return {
+        url: authUrl,
+        ident: data.ident || null,
+        requiresAuth: true,
+        message: data.message,
+      };
+    }
+
+    if (data.fallbackUrl) {
+      return {
+        url: data.fallbackUrl,
+        ident: data.ident || null,
+        requiresAuth: true,
+        usedFallback: true,
+      };
+    }
+
     throw new Error(
       data.error ||
-        "Minecraft login is required. Tebex did not return a login link — check API keys in .env.local.",
+        "Minecraft login is required. Add TEBEX_AUTH_RETURN_URL=https://zedxsmp.fun to .env.local if testing on localhost.",
     );
   }
 
@@ -60,19 +93,6 @@ export async function startTebexCheckout({ packageId, username }) {
           requiresAuth: Boolean(data.requiresAuth),
         }),
       );
-    }
-
-    const loginRequired =
-      /must login|login before adding/i.test(errText) && data.fallbackUrl;
-
-    if (loginRequired) {
-      window.location.href = data.fallbackUrl;
-      return {
-        url: data.fallbackUrl,
-        ident: data.ident || null,
-        requiresAuth: false,
-        usedFallback: true,
-      };
     }
 
     throw new Error(errText);

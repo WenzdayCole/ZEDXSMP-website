@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useCheckout } from "@/context/CheckoutContext";
+import { useCheckoutPageRestore } from "@/hooks/useCheckoutPageRestore";
 import { monthlyRanks as rankDetails } from "@/data/monthly-ranks";
 
 function RankAccentBar({ rank }) {
@@ -22,7 +22,7 @@ function RankAccentBar({ rank }) {
 function FeatureCard({ title, children }) {
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-sm transition-colors hover:border-white/15 hover:bg-white/[0.05]">
-      <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/40">
+      <h4 className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/55">
         {title}
       </h4>
       {children}
@@ -35,14 +35,7 @@ function RankSection({ rank, index, checkout, isLoading }) {
   const accentColor = rank.isGradient ? rank.secondaryAccent : rank.accent;
 
   return (
-    <motion.section
-      id={rank.id}
-      initial={{ opacity: 0, y: 32 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.5, delay: index * 0.05 }}
-      className="scroll-mt-28"
-    >
+    <section id={rank.id} className="scroll-mt-28">
       <div
         className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[#0a0a12]/80 p-6 sm:p-8 md:p-10"
         style={{
@@ -86,7 +79,7 @@ function RankSection({ rank, index, checkout, isLoading }) {
               {rank.name}
             </h2>
 
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/50">
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/65">
               {rank.description}
             </p>
 
@@ -103,13 +96,17 @@ function RankSection({ rank, index, checkout, isLoading }) {
               <button
                 type="button"
                 onClick={() =>
-                  checkout(rank.tebexPackageId, rank.name, { price: rank.price })
+                  checkout(rank.tebexPackageId, rank.tebexName, {
+                    price: rank.price,
+                  })
                 }
-                disabled={isLoading(rank.name)}
+                disabled={isLoading(rank.tebexName)}
                 className="mt-6 w-full min-h-[52px] rounded-xl bg-white py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-black transition-all hover:bg-purple-500 hover:text-white active:scale-[0.98] disabled:opacity-50"
                 style={{ boxShadow: `0 8px 32px -8px ${rank.glow}` }}
               >
-                {isLoading(rank.name) ? "Opening checkout…" : `Get ${rank.name}`}
+                {isLoading(rank.tebexName)
+                  ? "Opening checkout…"
+                  : `Get ${rank.name}`}
               </button>
 
               <Link
@@ -157,39 +154,28 @@ function RankSection({ rank, index, checkout, isLoading }) {
               </FeatureCard>
             </div>
 
-            <div
-              className={`rounded-2xl border p-6 ${
-                hasKit
-                  ? "border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent"
-                  : "border-dashed border-white/10 bg-white/[0.02]"
-              }`}
-            >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h4
-                    className={`text-xl font-black uppercase italic tracking-tight ${
-                      rank.isGradient
-                        ? "bg-gradient-to-r from-[#00C3FF] to-[#FF55FF] bg-clip-text text-transparent"
-                        : ""
-                    }`}
-                    style={!rank.isGradient ? { color: rank.accent } : undefined}
-                  >
-                    {rank.kit.name}
-                  </h4>
-                  {rank.kit.cooldown && (
-                    <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-white/35">
-                      Cooldown · {rank.kit.cooldown}
-                    </p>
-                  )}
+            {hasKit && (
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h4
+                      className={`text-xl font-black uppercase italic tracking-tight ${
+                        rank.isGradient
+                          ? "bg-gradient-to-r from-[#00C3FF] to-[#FF55FF] bg-clip-text text-transparent"
+                          : ""
+                      }`}
+                      style={!rank.isGradient ? { color: rank.accent } : undefined}
+                    >
+                      {rank.kit.name}
+                    </h4>
+                    {rank.kit.cooldown && (
+                      <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-white/35">
+                        Cooldown · {rank.kit.cooldown}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                {!hasKit && (
-                  <span className="text-[10px] uppercase tracking-widest text-white/25">
-                    Upgrade for kits
-                  </span>
-                )}
-              </div>
 
-              {hasKit && (
                 <ul className="mt-5 grid gap-2 sm:grid-cols-2">
                   {rank.kit.items.map((item) => (
                     <li
@@ -201,17 +187,19 @@ function RankSection({ rank, index, checkout, isLoading }) {
                     </li>
                   ))}
                 </ul>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
 
 export default function AboutPage() {
-  const { checkout, isLoading } = useCheckout();
+  const { checkout, isLoading, resetCheckoutUi } = useCheckout();
+
+  useCheckoutPageRestore(resetCheckoutUi);
 
   return (
     <main className="min-h-screen text-white selection:bg-purple-500/30">
@@ -257,7 +245,7 @@ export default function AboutPage() {
           </span>
         </h1>
         <p className="mx-auto mt-6 max-w-md text-sm text-white/45">
-          Full breakdown of commands, perks, and kits. Purchase any rank — checkout
+          Full breakdown of commands and perks. Purchase any rank — checkout
           takes under a minute on Tebex.
         </p>
         <Link

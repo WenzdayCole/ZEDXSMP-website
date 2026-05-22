@@ -1,6 +1,10 @@
 "use client";
 
-import SpaceBackground from "./SpaceBackground";
+import dynamic from "next/dynamic";
+
+const SpaceBackground = dynamic(() => import("./SpaceBackground"), {
+  ssr: false,
+});
 
 export default function SiteShell({ children }) {
   return (

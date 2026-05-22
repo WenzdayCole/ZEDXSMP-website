@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useClientSnapshot } from "@/hooks/useClientSnapshot";
 
 function createStarField(count) {
@@ -8,43 +7,41 @@ function createStarField(count) {
     .map(() => {
       const x = Math.random() * 100;
       const y = Math.random() * 100;
-      const opacity = Math.random() * 0.7 + 0.3;
+      const opacity = Math.random() * 0.5 + 0.25;
       return `${x}vw ${y}vh rgba(255, 255, 255, ${opacity})`;
     })
     .join(", ");
 }
 
+/** Lightweight fixed starfield — fewer stars, no Framer Motion. */
 export default function SpaceBackground() {
   const stars = useClientSnapshot(() => ({
-    slow: createStarField(150),
-    mid: createStarField(100),
-    fast: createStarField(50),
+    slow: createStarField(45),
+    mid: createStarField(30),
+    fast: createStarField(15),
   }));
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: stars ? 1 : 0 }}
-      transition={{ duration: 2 }}
+    <div
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#050208]"
       aria-hidden
     >
       {stars && (
         <>
-          <motion.div
+          <div
             style={{ boxShadow: stars.slow }}
-            className="absolute h-px w-px animate-parallax-infinite bg-transparent"
+            className="absolute h-px w-px bg-transparent animate-parallax-infinite"
           />
-          <motion.div
+          <div
             style={{ boxShadow: stars.mid }}
-            className="absolute h-0.5 w-0.5 animate-parallax-infinite bg-transparent [animation-duration:80s]"
+            className="absolute h-0.5 w-0.5 bg-transparent animate-parallax-infinite [animation-duration:80s]"
           />
-          <motion.div
+          <div
             style={{ boxShadow: stars.fast }}
-            className="absolute h-0.5 w-0.5 animate-parallax-infinite bg-transparent [animation-duration:40s]"
+            className="absolute h-0.5 w-0.5 bg-transparent animate-parallax-infinite [animation-duration:40s]"
           />
         </>
       )}
-    </motion.div>
+    </div>
   );
 }

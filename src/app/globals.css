@@ -171,6 +171,81 @@
     rgba(0, 242, 255, 0) 60%
   );
   animation: border-chase 4s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes hero-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-title-in {
+  from {
+    opacity: 0;
+    transform: scale3d(0.96, 0.96, 1);
+  }
+  to {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes scroll-hint-bounce {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, 8px, 0);
+  }
+}
+
+.animate-hero-fade-up {
+  animation: hero-fade-up 0.8s ease-out both;
+}
+
+.animate-hero-fade-in {
+  animation: hero-fade-in 1s ease-out both;
+}
+
+.animate-hero-title-in {
+  animation: hero-title-in 1s ease-out both;
+}
+
+.animate-scroll-hint-bounce {
+  animation: scroll-hint-bounce 1.5s ease-in-out infinite;
+}
+
+.animate-delay-500 {
+  animation-delay: 0.5s;
+}
+
+.animate-delay-800 {
+  animation-delay: 0.8s;
+}
+
+.animate-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animate-delay-1200 {
+  animation-delay: 1.2s;
 }
 
 .shimmer-overlay::after {
@@ -187,18 +262,19 @@
   pointer-events: none;
 }
 
-@keyframes nav-border-pulse {
+@keyframes nav-ring-pulse {
   0%,
   100% {
-    border-color: rgba(255, 255, 255, 0.1);
+    opacity: 0.35;
   }
   50% {
-    border-color: rgba(168, 85, 247, 0.4);
+    opacity: 0.95;
   }
 }
 
-.animate-nav-border-pulse {
-  animation: nav-border-pulse 4s ease-in-out infinite;
+.animate-nav-ring-pulse {
+  animation: nav-ring-pulse 4s ease-in-out infinite;
+  will-change: opacity;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -209,3 +285,15 @@
   background: rgba(168, 85, 247, 0.2);
   border-radius: 10px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-parallax-infinite,
+  .animate-border-glow,
+  .animate-spin-extremely-slow,
+  .animate-pulse-slow,
+  .animate-float,
+  .animate-nav-ring-pulse {
+    animation: none !important;
+  }
+}
+

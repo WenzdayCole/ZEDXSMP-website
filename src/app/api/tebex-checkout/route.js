@@ -26,6 +26,8 @@ export async function POST(req) {
       packageId,
       username,
       clientIp,
+      returnOrigin: body.returnOrigin,
+      requestHeaders: req.headers,
     });
 
     const logPayload = {
@@ -51,9 +53,11 @@ export async function POST(req) {
       return NextResponse.json(
         {
           error: result.error || "Tebex checkout failed.",
-          fallbackUrl: result.fallbackUrl,
+          url: result.url || null,
+          fallbackUrl: result.fallbackUrl || null,
           ident: result.ident || null,
           requiresAuth: Boolean(result.requiresAuth),
+          message: result.message || null,
         },
         { status: result.status || 500 },
       );

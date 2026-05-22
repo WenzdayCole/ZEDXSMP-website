@@ -6,6 +6,10 @@ import {
   isValidMinecraftUsernameFormat,
   sanitizeMinecraftUsername,
 } from "@/lib/minecraft-username";
+import {
+  lockCheckoutPage,
+  releaseCheckoutPageLock,
+} from "@/lib/checkout-page-lock";
 
 export default function CheckoutUsernameModal({
   open,
@@ -33,18 +37,18 @@ export default function CheckoutUsernameModal({
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    if (!open) {
+      releaseCheckoutPageLock();
+      return;
+    }
+    lockCheckoutPage();
+    return () => releaseCheckoutPageLock();
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {
-      if (e.key === "Escape" && !processing) onClose();
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -88,9 +92,10 @@ export default function CheckoutUsernameModal({
   const displayError = localError || error;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {open && (
         <motion.div
+          data-checkout-overlay
           className="fixed inset-0 z-[300] flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6"
           role="presentation"
           initial={{ opacity: 1 }}
@@ -102,7 +107,7 @@ export default function CheckoutUsernameModal({
             type="button"
             aria-label="Close checkout"
             className="absolute inset-0 bg-[#030108]/65 backdrop-blur-xl backdrop-saturate-150"
-            onClick={processing ? undefined : onClose}
+            onClick={onClose}
           />
 
           <motion.div

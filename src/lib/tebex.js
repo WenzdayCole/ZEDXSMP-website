@@ -43,7 +43,7 @@ function formatTebexError(message, storeUrl) {
   const lower = text.toLowerCase();
 
   if (isRequiresLoginError(text)) {
-    return "Redirecting you to sign in with your Minecraft account on Tebex…";
+    return "Tebex needs you to sign in with your Minecraft account before checkout.";
   }
 
   if (isInvalidUsernameError(text)) {
@@ -225,7 +225,7 @@ export async function createTebexBasket({
 }) {
   const body = {
     complete_url: `${siteUrl}/ranks?checkout=success`,
-    cancel_url: `${siteUrl}/ranks`,
+    cancel_url: `${siteUrl}/ranks?checkout=cancelled`,
     complete_auto_redirect: true,
     ip_address: clientIp,
   };
@@ -387,8 +387,160 @@ async function addPackageWithUsernameFallbacks({
   return lastResult;
 }
 
+/**
+ * Where Tebex sends the browser after cancel/complete (must be your running site).
+ * Uses NEXT_PUBLIC_SITE_URL as-is so local dev returns to localhost, not a dead prod host.
+ */
+export function resolveTebexBasketReturnUrl(siteUrl) {
+  const override = process.env.TEBEX_BASKET_RETURN_URL?.trim();
+  if (override) return override.replace(/\/$/, "");
+
+  const base = String(siteUrl || "").replace(/\/$/, "");
+  if (base) return base;
+
+  return "http://localhost:3000";
+}
+
+function parseUrlOrigin(value) {
+  if (!value) return null;
+  try {
+    const u = new URL(String(value).trim());
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return null;
+  }
+}
+
+/** Allowed cancel/complete redirect origins (prevents open-redirect abuse). */
+export function isAllowedBasketReturnOrigin(origin) {
+  const base = parseUrlOrigin(origin);
+  if (!base) return false;
+
+  try {
+    const { hostname, protocol } = new URL(base);
+    if (/^localhost$|^127\.0\.0\.1$/i.test(hostname) && protocol === "http:") {
+      return true;
+    }
+
+    const configured = parseUrlOrigin(
+      process.env.TEBEX_BASKET_RETURN_URL ||
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        "",
+    );
+    if (configured) {
+      const allowed = new URL(configured);
+      return hostname === allowed.hostname && protocol === allowed.protocol;
+    }
+
+    return hostname === "zedxsmp.fun" && protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function inferBasketReturnUrlFromRequestHeaders(headers) {
+  if (!headers?.get) return null;
+
+  const origin = parseUrlOrigin(headers.get("origin"));
+  if (origin && isAllowedBasketReturnOrigin(origin)) return origin;
+
+  const referer = headers.get("referer");
+  if (referer) {
+    const fromReferer = parseUrlOrigin(referer);
+    if (fromReferer && isAllowedBasketReturnOrigin(fromReferer)) {
+      return fromReferer;
+    }
+  }
+
+  const host = (
+    headers.get("x-forwarded-host") || headers.get("host") || ""
+  )
+    .split(",")[0]
+    ?.trim();
+  if (host && /localhost|127\.0\.0\.1/i.test(host)) {
+    const proto = (headers.get("x-forwarded-proto") || "http").split(",")[0];
+    const candidate = `${proto}://${host}`;
+    if (isAllowedBasketReturnOrigin(candidate)) return candidate;
+  }
+
+  return null;
+}
+
+/**
+ * Cancel/complete URL base for this checkout attempt.
+ * Prefers the browser origin (localhost while dev) over a dead prod env value.
+ */
+export function resolveTebexBasketReturnUrlForCheckout({
+  siteUrl,
+  returnOrigin,
+  requestHeaders,
+} = {}) {
+  const override = process.env.TEBEX_BASKET_RETURN_URL?.trim();
+  if (override) return override.replace(/\/$/, "");
+
+  const fromClient = parseUrlOrigin(returnOrigin);
+  if (fromClient && isAllowedBasketReturnOrigin(fromClient)) {
+    return fromClient;
+  }
+
+  const fromRequest = inferBasketReturnUrlFromRequestHeaders(requestHeaders);
+  if (fromRequest) return fromRequest;
+
+  return resolveTebexBasketReturnUrl(siteUrl);
+}
+
+/** Tebex Minecraft auth callbacks must use a public HTTPS URL (not localhost). */
+export function resolveTebexAuthSiteUrl(siteUrl) {
+  const override = process.env.TEBEX_AUTH_RETURN_URL?.trim();
+  if (override) return override.replace(/\/$/, "");
+
+  const base = String(siteUrl || "").replace(/\/$/, "");
+  if (!base) return "https://zedxsmp.fun";
+
+  if (/localhost|127\.0\.0\.1/i.test(base)) {
+    const prod = (
+      process.env.NEXT_PUBLIC_SITE_URL || "https://zedxsmp.fun"
+    ).trim();
+    if (prod && !/localhost|127\.0\.0\.1/i.test(prod)) {
+      return prod.replace(/\/$/, "");
+    }
+    return "https://zedxsmp.fun";
+  }
+
+  return base;
+}
+
+/** @deprecated Use resolveTebexAuthSiteUrl */
+export function resolveTebexSiteUrl(siteUrl) {
+  return resolveTebexAuthSiteUrl(siteUrl);
+}
+
 export function buildAuthReturnUrl(siteUrl, basketIdent) {
-  return `${siteUrl}/ranks?checkout=resume&basket=${encodeURIComponent(basketIdent)}`;
+  const publicSite = resolveTebexAuthSiteUrl(siteUrl);
+  return `${publicSite}/ranks?checkout=resume&basket=${encodeURIComponent(basketIdent)}`;
+}
+
+function loginRequiredResult({
+  status = 422,
+  error,
+  ident,
+  storeUrl,
+  packageId,
+  message,
+}) {
+  return {
+    ok: false,
+    status,
+    error,
+    requiresAuth: true,
+    ident: ident || null,
+    fallbackUrl: packageId
+      ? getHostedStorePackageUrl(storeUrl, packageId)
+      : storeUrl,
+    message:
+      message ||
+      "Sign in with your Minecraft account on Tebex to continue checkout.",
+  };
 }
 
 export async function resumeTebexCheckoutSession({ basketIdent }) {
@@ -530,6 +682,8 @@ export async function createTebexCheckoutSession({
   packageId,
   username,
   clientIp,
+  returnOrigin,
+  requestHeaders,
 }) {
   const config = getTebexConfig();
   if (!config.ok) {
@@ -537,8 +691,17 @@ export async function createTebexCheckoutSession({
   }
 
   const { webstoreId, publicToken, privateKey, siteUrl, storeUrl } = config;
+  const basketReturnUrl = resolveTebexBasketReturnUrlForCheckout({
+    siteUrl,
+    returnOrigin,
+    requestHeaders,
+  });
+  const authSiteUrl = resolveTebexAuthSiteUrl(siteUrl);
+
+  if (process.env.NODE_ENV === "development") {
+    console.info("[tebex-checkout] basket return base:", basketReturnUrl);
+  }
   const fallbackUrl = getHostedStorePackageUrl(storeUrl, packageId);
-  const successReturnUrl = `${siteUrl}/ranks?checkout=success`;
 
   const webstore = await validateTebexWebstore(webstoreId);
   if (!webstore.ok) {
@@ -554,7 +717,7 @@ export async function createTebexCheckoutSession({
     webstoreId,
     publicToken,
     privateKey,
-    siteUrl,
+    siteUrl: basketReturnUrl,
     clientIp,
     storeUrl,
   };
@@ -587,33 +750,51 @@ export async function createTebexCheckoutSession({
   });
 
   if (!added.ok) {
-    if (added.requiresLogin || isRequiresLoginError(added.error)) {
+    const needsLogin =
+      added.requiresLogin || isRequiresLoginError(added.error);
+
+    if (needsLogin) {
       const authRedirect = await authCheckoutRedirect({
         webstoreId,
         publicToken,
         privateKey,
         basketIdent: basket.ident,
-        siteUrl,
+        siteUrl: authSiteUrl,
         message:
           "Tebex needs you to sign in with Minecraft once before checkout.",
       });
       if (authRedirect.ok) return authRedirect;
-    }
 
-    const authRedirect = await authCheckoutRedirect({
-      webstoreId,
-      publicToken,
-      privateKey,
-      basketIdent: basket.ident,
-      siteUrl,
-    });
-    if (authRedirect.ok) return authRedirect;
+      const payUrl = buildPayCheckoutUrl(basket.ident);
+      if (payUrl) {
+        return {
+          ok: true,
+          url: payUrl,
+          ident: basket.ident,
+          requiresAuth: true,
+          message:
+            "Sign in with Minecraft on the next page to finish checkout.",
+        };
+      }
+
+      return loginRequiredResult({
+        status: added.status || 422,
+        error:
+          authRedirect.error ||
+          added.error ||
+          "Could not start Minecraft login. Try the Tebex store link below.",
+        ident: basket.ident,
+        storeUrl,
+        packageId,
+      });
+    }
 
     return {
       ok: false,
       status: added.status || 500,
       error: added.error,
       fallbackUrl,
+      ident: basket.ident,
     };
   }
 
@@ -647,15 +828,26 @@ export async function createTebexCheckoutSession({
     publicToken,
     privateKey,
     basketIdent: basket.ident,
-    siteUrl,
+    siteUrl: authSiteUrl,
   });
   if (authRedirect.ok) return authRedirect;
 
-  return {
-    ok: false,
+  const payUrl = buildPayCheckoutUrl(basket.ident);
+  if (payUrl) {
+    return {
+      ok: true,
+      url: payUrl,
+      ident: basket.ident,
+      requiresAuth: true,
+      message: "Sign in with Minecraft on the next page to finish checkout.",
+    };
+  }
+
+  return loginRequiredResult({
     status: 500,
-    error:
-      "Could not start checkout. Try the Tebex store page instead.",
-    fallbackUrl,
-  };
+    error: "Could not start checkout. Try the Tebex store page instead.",
+    ident: basket.ident,
+    storeUrl,
+    packageId,
+  });
 }

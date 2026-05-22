@@ -12,10 +12,11 @@ export default function CheckoutRedirectScreen({
   const shell = overlay
     ? "fixed inset-0 z-[500] flex flex-col items-center justify-center bg-[#030108] px-6"
     : "flex min-h-[100dvh] flex-col items-center justify-center bg-[#030108] px-6";
+  const overlayProps = overlay ? { "data-checkout-overlay": true } : {};
 
   if (error) {
     return (
-      <div className={`${shell} text-center`}>
+      <div className={`${shell} text-center`} {...overlayProps}>
         <p className="text-sm text-red-300">{error}</p>
         <Link
           href={backHref}
@@ -28,7 +29,7 @@ export default function CheckoutRedirectScreen({
   }
 
   return (
-    <div className={shell}>
+    <div className={shell} {...overlayProps}>
       <div className="h-1 w-32 overflow-hidden rounded-full bg-white/10">
         <div className="h-full w-2/5 animate-pulse rounded-full bg-gradient-to-r from-purple-500 to-cyan-400" />
       </div>

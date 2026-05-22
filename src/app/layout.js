@@ -73,11 +73,6 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} scroll-smooth`}
       suppressHydrationWarning
     >
-      <head>
-        <link rel="preconnect" href="https://pay.tebex.io" />
-        <link rel="preconnect" href="https://headless.tebex.io" />
-        <link rel="dns-prefetch" href="https://js.tebex.io" />
-      </head>
       <body className="flex min-h-screen flex-col bg-[#050208] text-white antialiased selection:bg-purple-600/30 selection:text-purple-200">
         <AppProviders>{children}</AppProviders>
       </body>
