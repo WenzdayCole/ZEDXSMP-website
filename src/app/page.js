@@ -1,5 +1,6 @@
 import HomePageClient from "@/app/components/HomePageClient";
 import HomeHeroLogo from "@/app/components/HomeHeroLogo";
+import HomeVisitorsOnline from "@/app/components/HomeVisitorsOnline";
 import HomePromoImage from "@/app/components/HomePromoImage";
 import SiteFooter from "@/app/components/SiteFooter";
 
@@ -74,7 +75,9 @@ export default function HomePage() {
   return (
     <main className="relative flex min-h-screen flex-col items-center overflow-x-hidden p-6 font-sans text-white selection:bg-[#a855f74d]">
       <section className="relative z-10 flex min-h-screen w-full max-w-6xl flex-col items-center justify-center py-20">
-        <div className="animate-hero-title-in animate-delay-0 relative mb-2 text-center">
+        <HomeVisitorsOnline />
+
+        <div className="animate-hero-title-in animate-delay-200 relative mb-2 text-center">
           <HomeHeroLogo />
         </div>
 

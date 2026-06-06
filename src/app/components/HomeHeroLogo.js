@@ -37,11 +37,10 @@ export default function HomeHeroLogo() {
           aria-hidden={!stickerLanded}
           tabIndex={stickerLanded ? 0 : -1}
         >
-          <span className="sale-sticker-text">
-            <span className="block leading-[0.95]">SALE!</span>
-            <span className="mt-[0.12em] block text-[0.58em] leading-[1.05]">
-              10% off Ranks
-            </span>
+          <span className="sale-sticker-inner">
+            <span className="sale-sticker-badge">Sale!</span>
+            <span className="sale-sticker-off">Up to 40% off</span>
+            <span className="sale-sticker-sub">Ranks</span>
           </span>
         </Link>
       </span>

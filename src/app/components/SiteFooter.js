@@ -15,23 +15,23 @@ export default function SiteFooter({ className = "" }) {
   return (
     <>
       <footer
-        className={`relative z-10 flex w-full max-w-6xl flex-col items-center gap-4 border-t border-white/5 py-12 ${className}`.trim()}
+        className={`relative z-10 flex w-full max-w-6xl flex-col items-center gap-3 border-t border-white/5 py-10 ${className}`.trim()}
       >
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
           <button
             type="button"
             onClick={() => setOpenPolicy("terms")}
-            className="text-[10px] font-black uppercase tracking-[0.3em] text-white/70 transition-colors hover:text-purple-400"
+            className="text-[7px] font-bold uppercase tracking-[0.18em] text-white/35 transition-colors hover:text-white/55"
           >
             Terms of Service
           </button>
-          <span className="hidden text-white/20 sm:inline" aria-hidden>
+          <span className="text-[7px] text-white/15" aria-hidden>
             ·
           </span>
           <button
             type="button"
             onClick={() => setOpenPolicy("refund")}
-            className="text-[10px] font-black uppercase tracking-[0.3em] text-white/70 transition-colors hover:text-purple-400"
+            className="text-[7px] font-bold uppercase tracking-[0.18em] text-white/35 transition-colors hover:text-white/55"
           >
             Refund Policy
           </button>

@@ -27,6 +27,7 @@ export async function POST(req) {
       username,
       clientIp,
       returnOrigin: body.returnOrigin,
+      returnPath: body.returnPath,
       requestHeaders: req.headers,
     });
 

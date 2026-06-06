@@ -2,6 +2,7 @@ import {
   getUsernameCandidates,
   sanitizeMinecraftUsername,
 } from "@/lib/minecraft-username";
+import { sanitizeCheckoutReturnPath } from "@/lib/checkout-return";
 
 const TEBEX_API = "https://headless.tebex.io/api";
 
@@ -214,20 +215,50 @@ export async function validateTebexWebstore(webstoreId) {
   return { ok: true, name: store?.name, url: store?.webstore_url };
 }
 
+export function normalizeBasketReturnBase(siteUrl) {
+  const base = String(siteUrl || "").replace(/\/$/, "");
+  if (!base) return "https://shop.zedxsmp.fun";
+
+  try {
+    const url = new URL(base);
+    if (url.hostname === "shop.zedxsmp.fun" || url.hostname === "zedxsmp.fun") {
+      url.protocol = "https:";
+    }
+    return `${url.protocol}//${url.host}`;
+  } catch {
+    return base;
+  }
+}
+
+/** Tebex cancel_url must be a simple absolute URL (query strings often break Cancel). */
+export function buildBasketReturnUrls(siteUrl, returnPath = "/ranks") {
+  const base = normalizeBasketReturnBase(siteUrl);
+  const safePath = sanitizeCheckoutReturnPath(returnPath);
+
+  return {
+    complete_url: `${base}/ranks?checkout=success`,
+    cancel_url: `${base}/ranks/checkout/cancel`,
+    custom: { returnPath: safePath },
+  };
+}
+
 export async function createTebexBasket({
   webstoreId,
   publicToken,
   privateKey,
   username,
   siteUrl,
+  returnPath,
   clientIp,
   storeUrl,
 }) {
+  const urls = buildBasketReturnUrls(siteUrl, returnPath);
   const body = {
-    complete_url: `${siteUrl}/ranks?checkout=success`,
-    cancel_url: `${siteUrl}/ranks?checkout=cancelled`,
+    complete_url: urls.complete_url,
+    cancel_url: urls.cancel_url,
     complete_auto_redirect: true,
     ip_address: clientIp,
+    custom: urls.custom,
   };
 
   if (username) {
@@ -686,6 +717,7 @@ export async function createTebexCheckoutSession({
   username,
   clientIp,
   returnOrigin,
+  returnPath,
   requestHeaders,
 }) {
   const config = getTebexConfig();
@@ -703,6 +735,10 @@ export async function createTebexCheckoutSession({
 
   if (process.env.NODE_ENV === "development") {
     console.info("[tebex-checkout] basket return base:", basketReturnUrl);
+    console.info(
+      "[tebex-checkout] cancel_url:",
+      buildBasketReturnUrls(basketReturnUrl, returnPath).cancel_url,
+    );
   }
   const fallbackUrl = getHostedStorePackageUrl(storeUrl, packageId);
 
@@ -721,6 +757,7 @@ export async function createTebexCheckoutSession({
     publicToken,
     privateKey,
     siteUrl: basketReturnUrl,
+    returnPath,
     clientIp,
     storeUrl,
   };

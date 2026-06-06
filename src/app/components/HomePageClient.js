@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useClientSnapshot } from "@/hooks/useClientSnapshot";
 
 const DISCORD_LINK = "https://discord.com/invite/zedxsmp";
 const SERVER_IP = "zedxsmp.fun";
@@ -12,9 +11,6 @@ export default function HomePageClient() {
   const [showScrollHint, setShowScrollHint] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [mouseGlow, setMouseGlow] = useState(false);
-  const playerCount = useClientSnapshot(
-    () => Math.floor(Math.random() * 20) + 12,
-  );
 
   useEffect(() => {
     const hintTimer = setTimeout(() => setShowScrollHint(true), 3000);
@@ -81,21 +77,6 @@ export default function HomePageClient() {
         </div>
       )}
 
-      <div className="animate-hero-fade-up animate-delay-450 mb-6 flex items-center gap-2 rounded-full border border-[#ffffff1a] bg-[#ffffff0d] px-4 py-1.5 backdrop-blur-sm">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-        </span>
-        <span
-          className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80"
-          suppressHydrationWarning
-        >
-          {playerCount != null
-            ? `${playerCount} Visitors Online`
-            : "Connecting…"}
-        </span>
-      </div>
-
       <div className="animate-hero-fade-up animate-delay-650 mb-8 grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2">
         <button
           type="button"
@@ -118,12 +99,32 @@ export default function HomePageClient() {
 
         <Link
           href="/ranks"
-          className="group relative overflow-hidden rounded-2xl bg-white p-8 text-black transition-all hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] active:scale-95"
+          className="group relative overflow-hidden rounded-2xl border border-purple-500/35 bg-[linear-gradient(145deg,rgba(147,51,234,0.22)_0%,rgba(10,6,18,0.92)_45%,rgba(88,28,135,0.18)_100%)] p-8 shadow-[0_0_40px_-12px_rgba(168,85,247,0.55)] backdrop-blur-md transition-all duration-300 hover:border-purple-400/55 hover:shadow-[0_0_48px_-8px_rgba(168,85,247,0.65)] active:scale-[0.98]"
         >
-          <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-black/70">
-            Premium
-          </span>
-          <span className="text-2xl font-black uppercase italic">Store →</span>
+          <span
+            className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-purple-500/20 blur-2xl transition-opacity duration-300 group-hover:bg-purple-400/30"
+            aria-hidden
+          />
+          <span
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-300/50 to-transparent"
+            aria-hidden
+          />
+          <div className="relative flex items-end justify-between gap-4">
+            <div>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.28em] text-purple-300/90">
+                Premium Store
+              </span>
+              <span className="block text-2xl font-black uppercase italic leading-none text-white">
+                Shop{" "}
+                <span className="bg-gradient-to-r from-purple-200 to-purple-400 bg-clip-text text-transparent">
+                  Ranks
+                </span>
+              </span>
+            </div>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-400/30 bg-purple-500/15 text-lg text-purple-100 transition-all duration-300 group-hover:border-purple-300/50 group-hover:bg-purple-500/30 group-hover:text-white">
+              →
+            </span>
+          </div>
         </Link>
       </div>
 

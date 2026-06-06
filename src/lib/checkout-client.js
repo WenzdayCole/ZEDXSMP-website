@@ -1,4 +1,5 @@
 import { sanitizeMinecraftUsername } from "@/lib/minecraft-username";
+import { sanitizeCheckoutReturnPath } from "@/lib/checkout-return";
 import { buildPayCheckoutUrl } from "@/lib/tebex-js";
 
 function isMinecraftLoginMessage(text) {
@@ -7,7 +8,14 @@ function isMinecraftLoginMessage(text) {
   );
 }
 
-export async function startTebexCheckout({ packageId, username }) {
+export async function startTebexCheckout({ packageId, username, returnPath } = {}) {
+  const safeReturnPath =
+    typeof window !== "undefined"
+      ? sanitizeCheckoutReturnPath(
+          returnPath || `${window.location.pathname}${window.location.hash}`,
+        )
+      : "/ranks";
+
   const response = await fetch("/api/tebex-checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -16,6 +24,7 @@ export async function startTebexCheckout({ packageId, username }) {
       username: sanitizeMinecraftUsername(username),
       returnOrigin:
         typeof window !== "undefined" ? window.location.origin : undefined,
+      returnPath: safeReturnPath,
     }),
   });
 

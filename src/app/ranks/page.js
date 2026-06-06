@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCheckout } from "@/context/CheckoutContext";
 import { crateKeys } from "@/data/crate-keys";
 import { getStoreRankCards } from "@/data/monthly-ranks";
+import { getRankSaleDiscountPercent } from "@/lib/rank-sale-price";
 import { useCheckoutPageRestore } from "@/hooks/useCheckoutPageRestore";
 import { usePageRestoreKey } from "@/hooks/usePageRestoreKey";
 import SiteFooter from "@/app/components/SiteFooter";
@@ -67,7 +68,13 @@ export default function RanksPage() {
         </header>
 
         <div className="mb-32 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {monthlyRanks.map((rank) => (
+          {monthlyRanks.map((rank) => {
+            const saleDiscount = getRankSaleDiscountPercent(
+              rank.wasPrice,
+              rank.price,
+            );
+
+            return (
             <div
               key={rank.name}
               className="group relative flex flex-col transition-transform duration-500 hover:-translate-y-2"
@@ -117,7 +124,17 @@ export default function RanksPage() {
                   >
                     {rank.name}
                   </h2>
-                  <div className="flex items-baseline gap-1">
+                  <div className="mb-2">
+                    {saleDiscount != null && (
+                      <span className="inline-block rounded-full border border-red-400/25 bg-red-500/15 px-2.5 py-0.5 text-[8px] font-black uppercase tracking-[0.22em] text-red-200">
+                        {saleDiscount}% Off
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <span className="font-mono text-xl font-bold tracking-tight text-white/30 line-through decoration-white/25">
+                      {rank.wasPrice}
+                    </span>
                     <span className="font-mono text-5xl font-black tracking-tighter text-white">
                       {rank.price}
                     </span>
@@ -175,7 +192,8 @@ export default function RanksPage() {
                 </Link>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
 
         <div id="keys" className="mb-20 scroll-mt-24">

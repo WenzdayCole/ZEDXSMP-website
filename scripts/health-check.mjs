@@ -90,7 +90,7 @@ if (webstoreId && privateKey) {
         },
         body: JSON.stringify({
           complete_url: "http://localhost:3000/ranks?checkout=success",
-          cancel_url: "http://localhost:3000/ranks",
+          cancel_url: "http://localhost:3000/ranks/checkout/cancel",
           complete_auto_redirect: true,
           ip_address: "127.0.0.1",
         }),

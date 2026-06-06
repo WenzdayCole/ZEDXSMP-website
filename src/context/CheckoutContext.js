@@ -21,6 +21,7 @@ import { buildPayCheckoutUrl } from "@/lib/tebex-js";
 import { isValidPackageId, startTebexCheckout } from "@/lib/checkout-client";
 import { useCheckoutPageRestore } from "@/hooks/useCheckoutPageRestore";
 import { releaseCheckoutPageLock } from "@/lib/checkout-page-lock";
+import { persistCheckoutReturnPath } from "@/lib/checkout-return";
 
 const CheckoutContext = createContext(null);
 
@@ -30,6 +31,7 @@ function resolveCheckoutUrl(url, ident) {
 
 function goToCheckout(url) {
   if (!url) return;
+  persistCheckoutReturnPath();
   releaseCheckoutPageLock();
   window.location.assign(url);
 }
@@ -217,6 +219,7 @@ function CheckoutProviderInner({ children }) {
         const { url, ident, requiresAuth } = await startTebexCheckout({
           packageId: Number(pending.packageId),
           username,
+          returnPath: `${window.location.pathname}${window.location.hash}`,
         });
 
         const checkoutUrl = resolveCheckoutUrl(url, ident);

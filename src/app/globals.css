@@ -221,60 +221,140 @@
 @keyframes sale-sticker-fly-in {
   0% {
     opacity: 0;
-    transform: translate3d(55vw, -45vh, 0) rotate(62deg) scale(0.2);
+    transform: translate3d(65vw, -55vh, 0) rotate(68deg) scale(0.2);
   }
   35% {
     opacity: 1;
   }
   58% {
-    transform: translate3d(-14%, 18%, 0) rotate(-18deg) scale(1.1);
+    transform: translate3d(-12%, 10%, 0) rotate(24deg) scale(1.08);
   }
   78% {
-    transform: translate3d(5%, -6%, 0) rotate(-12deg) scale(0.97);
+    transform: translate3d(4%, -3%, 0) rotate(19deg) scale(0.98);
   }
   100% {
     opacity: 1;
-    transform: translate3d(0, 0, 0) rotate(-10deg) scale(1);
+    transform: translate3d(0, 0, 0) rotate(16deg) scale(1);
   }
 }
 
 .sale-sticker {
   position: absolute;
-  left: -2%;
-  top: -6%;
+  left: 12%;
+  top: 11%;
   z-index: 10;
   display: flex;
-  width: 96%;
-  height: 88%;
+  width: 86%;
+  height: 72%;
   min-width: 0;
   align-items: center;
   justify-content: center;
-  padding: 0.06em 0.05em;
-  border: 0.035em solid #fff;
-  border-radius: 0.06em;
-  background: linear-gradient(165deg, #ef4444 0%, #dc2626 55%, #b91c1c 100%);
+  padding: 0.1em 0.12em 0.12em;
+  border-radius: 0.14em;
+  border: 0.045em solid rgba(255, 255, 255, 0.95);
+  outline: 0.04em solid rgba(76, 5, 25, 0.85);
+  background:
+    repeating-linear-gradient(
+      -52deg,
+      rgba(255, 255, 255, 0.07) 0 0.06em,
+      transparent 0.06em 0.22em
+    ),
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.35) 0%, transparent 42%),
+    linear-gradient(152deg, #ff5a5a 0%, #ef4444 22%, #dc2626 52%, #991b1b 100%);
   box-shadow:
-    0 0.08em 0.22em rgba(0, 0, 0, 0.5),
-    0 0 0 0.02em rgba(0, 0, 0, 0.35),
-    inset 0 0.02em 0 rgba(255, 255, 255, 0.35);
+    0 0.14em 0.35em rgba(0, 0, 0, 0.55),
+    0 0.04em 0 rgba(0, 0, 0, 0.35),
+    inset 0 0.06em 0 rgba(255, 255, 255, 0.45),
+    inset 0 -0.05em 0 rgba(127, 29, 29, 0.55);
   color: #fff;
-  font-size: 0.16em;
   font-style: normal;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   text-decoration: none;
-  text-align: center;
   opacity: 0;
   pointer-events: none;
   transform-origin: center center;
+  overflow: hidden;
+  isolation: isolate;
+  font-size: 0.17em;
 }
 
-.sale-sticker-text {
+.sale-sticker::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0.08) 28%,
+    transparent 52%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sale-sticker::after {
+  content: "";
+  position: absolute;
+  right: -0.02em;
+  bottom: -0.02em;
+  width: 0.42em;
+  height: 0.42em;
+  background: linear-gradient(225deg, #fecaca 0%, #fca5a5 45%, #f87171 100%);
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+  box-shadow: -0.03em -0.03em 0.05em rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.sale-sticker-inner {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.04em 0.02em;
+  text-align: center;
+}
+
+.sale-sticker-badge {
   display: block;
-  width: 92%;
-  text-shadow: 0 0.04em 0 rgba(0, 0, 0, 0.35);
+  font-size: 1.28em;
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fef08a;
+  text-shadow:
+    0 0.04em 0 rgba(127, 29, 29, 0.9),
+    0 0 0.12em rgba(254, 240, 138, 0.45);
+}
+
+.sale-sticker-off {
+  display: block;
+  margin-top: 0.1em;
+  font-size: 1.08em;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 0.04em 0 rgba(76, 5, 25, 0.85);
+}
+
+.sale-sticker-sub {
+  display: inline-block;
+  margin-top: 0.14em;
+  padding: 0.12em 0.28em 0.1em;
+  border-radius: 999px;
+  background: rgba(76, 5, 25, 0.55);
+  border: 0.03em solid rgba(255, 255, 255, 0.35);
+  font-size: 0.75em;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffe4e6;
 }
 
 .sale-sticker--landed {
@@ -284,17 +364,22 @@
 
 .sale-sticker--static {
   opacity: 1;
-  transform: rotate(-10deg);
+  transform: rotate(16deg);
   animation: none;
   pointer-events: auto;
 }
 
 .sale-sticker:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.06) saturate(1.05);
+  box-shadow:
+    0 0.16em 0.4em rgba(0, 0, 0, 0.58),
+    0 0 0.22em rgba(248, 113, 113, 0.35),
+    inset 0 0.06em 0 rgba(255, 255, 255, 0.45),
+    inset 0 -0.05em 0 rgba(127, 29, 29, 0.55);
 }
 
 .sale-sticker:active {
-  filter: brightness(0.96);
+  filter: brightness(0.98);
 }
 
 .animate-hero-fade-up {
@@ -448,7 +533,7 @@
   .sale-sticker--static {
     opacity: 1;
     pointer-events: auto;
-    transform: rotate(-10deg);
+    transform: rotate(16deg);
   }
 }
 
