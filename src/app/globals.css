@@ -218,6 +218,103 @@
   }
 }
 
+@keyframes zedx-logo-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+@keyframes zedx-emblem-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(192, 132, 252, 0.75));
+  }
+}
+
+.zedx-logo-frame {
+  width: 4.75rem;
+  height: 4.75rem;
+}
+
+@media (min-width: 640px) {
+  .zedx-logo-frame {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+}
+
+.zedx-logo-emblem {
+  animation: zedx-emblem-pulse 4s ease-in-out infinite;
+}
+
+.zedx-logo-zedx {
+  color: #ffffff;
+  text-shadow:
+    0 0 40px rgba(168, 85, 247, 0.35),
+    0 4px 24px rgba(0, 0, 0, 0.55),
+    0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+.zedx-logo-smp {
+  background: linear-gradient(
+    105deg,
+    #e9d5ff 0%,
+    #c084fc 18%,
+    #a855f7 45%,
+    #9333ea 62%,
+    #7c3aed 78%,
+    #c084fc 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 22px rgba(168, 85, 247, 0.55));
+}
+
+.zedx-logo-shimmer {
+  animation: zedx-logo-shimmer 7s linear infinite;
+}
+
+.zedx-logo-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: rgba(168, 85, 247, 0.55);
+  border-style: solid;
+}
+
+.zedx-logo-corner-tl {
+  top: 0;
+  left: 0;
+  border-width: 2px 0 0 2px;
+}
+
+.zedx-logo-corner-tr {
+  top: 0;
+  right: 0;
+  border-width: 2px 2px 0 0;
+}
+
+.zedx-logo-corner-bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 2px 2px;
+}
+
+.zedx-logo-corner-br {
+  bottom: 0;
+  right: 0;
+  border-width: 0 2px 2px 0;
+}
+
 .animate-hero-fade-up {
   animation: hero-fade-up 0.95s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
@@ -360,7 +457,9 @@
   .animate-hero-fade-up,
   .animate-hero-fade-in,
   .animate-hero-title-in,
-  .animate-scroll-hint-bounce {
+  .animate-scroll-hint-bounce,
+  .zedx-logo-shimmer,
+  .zedx-logo-emblem {
     animation: none !important;
   }
 }
