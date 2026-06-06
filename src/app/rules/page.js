@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import SiteFooter from "@/app/components/SiteFooter";
 
 export default function RulesPage() {
   const ruleSections = [
@@ -106,11 +107,7 @@ export default function RulesPage() {
         </div>
       </div>
 
-      <footer className="relative z-10 w-full max-w-6xl py-20 flex flex-col items-center border-t border-white/5 mt-20 mx-auto">
-        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/10">
-          © 2026 ZEDXSMP · System Protocol Active
-        </p>
-      </footer>
+      <SiteFooter className="mx-auto mt-20" />
 
     </main>
   );

@@ -432,7 +432,10 @@ export function isAllowedBasketReturnOrigin(origin) {
       return hostname === allowed.hostname && protocol === allowed.protocol;
     }
 
-    return hostname === "zedxsmp.fun" && protocol === "https:";
+    return (
+      (hostname === "shop.zedxsmp.fun" || hostname === "zedxsmp.fun") &&
+      protocol === "https:"
+    );
   } catch {
     return false;
   }
@@ -495,16 +498,16 @@ export function resolveTebexAuthSiteUrl(siteUrl) {
   if (override) return override.replace(/\/$/, "");
 
   const base = String(siteUrl || "").replace(/\/$/, "");
-  if (!base) return "https://zedxsmp.fun";
+  if (!base) return "https://shop.zedxsmp.fun";
 
   if (/localhost|127\.0\.0\.1/i.test(base)) {
     const prod = (
-      process.env.NEXT_PUBLIC_SITE_URL || "https://zedxsmp.fun"
+      process.env.NEXT_PUBLIC_SITE_URL || "https://shop.zedxsmp.fun"
     ).trim();
     if (prod && !/localhost|127\.0\.0\.1/i.test(prod)) {
       return prod.replace(/\/$/, "");
     }
-    return "https://zedxsmp.fun";
+    return "https://shop.zedxsmp.fun";
   }
 
   return base;

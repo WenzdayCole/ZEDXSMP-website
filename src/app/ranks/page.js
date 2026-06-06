@@ -9,6 +9,7 @@ import { crateKeys } from "@/data/crate-keys";
 import { getStoreRankCards } from "@/data/monthly-ranks";
 import { useCheckoutPageRestore } from "@/hooks/useCheckoutPageRestore";
 import { usePageRestoreKey } from "@/hooks/usePageRestoreKey";
+import SiteFooter from "@/app/components/SiteFooter";
 
 export default function RanksPage() {
   const { checkout, isLoading, resetCheckoutUi } = useCheckout();
@@ -293,6 +294,8 @@ export default function RanksPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <SiteFooter className="mx-auto mt-20" />
     </main>
   );
 }

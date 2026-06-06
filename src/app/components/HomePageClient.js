@@ -81,7 +81,7 @@ export default function HomePageClient() {
         </div>
       )}
 
-      <div className="animate-hero-fade-up animate-delay-500 mb-6 flex items-center gap-2 rounded-full border border-[#ffffff1a] bg-[#ffffff0d] px-4 py-1.5 backdrop-blur-sm">
+      <div className="animate-hero-fade-up animate-delay-450 mb-6 flex items-center gap-2 rounded-full border border-[#ffffff1a] bg-[#ffffff0d] px-4 py-1.5 backdrop-blur-sm">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
@@ -96,7 +96,7 @@ export default function HomePageClient() {
         </span>
       </div>
 
-      <div className="animate-hero-fade-up animate-delay-1000 mb-8 grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="animate-hero-fade-up animate-delay-650 mb-8 grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2">
         <button
           type="button"
           onClick={copyIP}
@@ -127,7 +127,7 @@ export default function HomePageClient() {
         </Link>
       </div>
 
-      <div className="animate-hero-fade-up animate-delay-1200 w-full max-w-2xl">
+      <div className="animate-hero-fade-up animate-delay-850 w-full max-w-2xl">
         <a
           href={DISCORD_LINK}
           target="_blank"
@@ -144,7 +144,7 @@ export default function HomePageClient() {
               className="pointer-events-none absolute inset-0 animate-nav-ring-pulse rounded-full ring-1 ring-purple-400/50"
               aria-hidden
             />
-            {["Rules", "Ranks", "Keys"].map((item) => {
+            {["Rules", "Ranks", "Keys", "Commands"].map((item) => {
               const path =
                 item === "Ranks"
                   ? "/ranks/about"
@@ -155,7 +155,7 @@ export default function HomePageClient() {
                 <Link
                   key={item}
                   href={path}
-                  className="relative z-10 rounded-full px-8 py-3 text-[10px] font-black uppercase tracking-[0.4em] text-white/70 transition-colors duration-500 hover:bg-white/10 hover:text-white"
+                  className="relative z-10 rounded-full px-5 py-3 text-[9px] font-black uppercase tracking-[0.35em] text-white/70 transition-colors duration-500 hover:bg-white/10 hover:text-white sm:px-6 sm:text-[10px] sm:tracking-[0.4em]"
                 >
                   {item}
                 </Link>
@@ -166,7 +166,7 @@ export default function HomePageClient() {
       </div>
 
       {showScrollHint && (
-        <div className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
+        <div className="animate-hero-fade-up absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
           <span className="rounded-full bg-black/60 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.3em] text-white">
             Scroll Down
           </span>

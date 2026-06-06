@@ -23,7 +23,7 @@ export default function SpaceBackground() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#050208]"
+      className="animate-hero-fade-in pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#050208]"
       aria-hidden
     >
       {stars && (

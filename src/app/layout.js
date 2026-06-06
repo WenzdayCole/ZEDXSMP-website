@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 // 1. Metadata Configuration
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://zedxsmp.fun";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://shop.zedxsmp.fun";
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
@@ -37,7 +37,7 @@ export const metadata = {
     title: "ZEDX SMP",
     description:
       "The most immersive Vanilla+ Minecraft experience. Join us today!",
-    url: "https://zedxsmp.fun",
+    url: "https://shop.zedxsmp.fun",
     siteName: "ZEDX SMP",
     images: [
       {
