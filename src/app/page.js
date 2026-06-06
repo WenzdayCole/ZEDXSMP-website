@@ -1,7 +1,7 @@
 import HomePageClient from "@/app/components/HomePageClient";
+import HomeHeroLogo from "@/app/components/HomeHeroLogo";
 import HomePromoImage from "@/app/components/HomePromoImage";
 import SiteFooter from "@/app/components/SiteFooter";
-import ZedxSmpLogo from "@/app/components/ZedxSmpLogo";
 
 const FEATURE_ENTER_DELAYS = [
   "animate-delay-1500",
@@ -74,11 +74,11 @@ export default function HomePage() {
   return (
     <main className="relative flex min-h-screen flex-col items-center overflow-x-hidden p-6 font-sans text-white selection:bg-[#a855f74d]">
       <section className="relative z-10 flex min-h-screen w-full max-w-6xl flex-col items-center justify-center py-20">
-        <div className="animate-hero-title-in animate-delay-0 relative mb-2 w-full text-center">
-          <ZedxSmpLogo />
+        <div className="animate-hero-title-in animate-delay-0 relative mb-2 text-center">
+          <HomeHeroLogo />
         </div>
 
-        <p className="animate-hero-fade-up animate-delay-350 mb-12 text-center text-[10px] font-medium uppercase tracking-[1.2em] text-purple-200">
+        <p className="animate-hero-fade-up animate-delay-350 mb-12 ml-[1.2em] text-center text-[10px] font-medium uppercase tracking-[1.2em] text-purple-200">
           The ultimate multiplayer vanilla{" "}
           <span className="text-white">Experience</span>
         </p>

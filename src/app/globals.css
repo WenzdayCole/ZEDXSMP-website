@@ -218,101 +218,83 @@
   }
 }
 
-@keyframes zedx-logo-shimmer {
+@keyframes sale-sticker-fly-in {
   0% {
-    background-position: 200% center;
+    opacity: 0;
+    transform: translate3d(55vw, -45vh, 0) rotate(62deg) scale(0.2);
+  }
+  35% {
+    opacity: 1;
+  }
+  58% {
+    transform: translate3d(-14%, 18%, 0) rotate(-18deg) scale(1.1);
+  }
+  78% {
+    transform: translate3d(5%, -6%, 0) rotate(-12deg) scale(0.97);
   }
   100% {
-    background-position: -200% center;
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(-10deg) scale(1);
   }
 }
 
-@keyframes zedx-emblem-pulse {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.45));
-  }
-  50% {
-    filter: drop-shadow(0 0 18px rgba(192, 132, 252, 0.75));
-  }
-}
-
-.zedx-logo-frame {
-  width: 4.75rem;
-  height: 4.75rem;
-}
-
-@media (min-width: 640px) {
-  .zedx-logo-frame {
-    width: 5.5rem;
-    height: 5.5rem;
-  }
-}
-
-.zedx-logo-emblem {
-  animation: zedx-emblem-pulse 4s ease-in-out infinite;
-}
-
-.zedx-logo-zedx {
-  color: #ffffff;
-  text-shadow:
-    0 0 40px rgba(168, 85, 247, 0.35),
-    0 4px 24px rgba(0, 0, 0, 0.55),
-    0 0 2px rgba(255, 255, 255, 0.8);
-}
-
-.zedx-logo-smp {
-  background: linear-gradient(
-    105deg,
-    #e9d5ff 0%,
-    #c084fc 18%,
-    #a855f7 45%,
-    #9333ea 62%,
-    #7c3aed 78%,
-    #c084fc 100%
-  );
-  background-size: 220% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 22px rgba(168, 85, 247, 0.55));
-}
-
-.zedx-logo-shimmer {
-  animation: zedx-logo-shimmer 7s linear infinite;
-}
-
-.zedx-logo-corner {
+.sale-sticker {
   position: absolute;
-  width: 14px;
-  height: 14px;
-  border-color: rgba(168, 85, 247, 0.55);
-  border-style: solid;
+  left: -2%;
+  top: -6%;
+  z-index: 10;
+  display: flex;
+  width: 96%;
+  height: 88%;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0.06em 0.05em;
+  border: 0.035em solid #fff;
+  border-radius: 0.06em;
+  background: linear-gradient(165deg, #ef4444 0%, #dc2626 55%, #b91c1c 100%);
+  box-shadow:
+    0 0.08em 0.22em rgba(0, 0, 0, 0.5),
+    0 0 0 0.02em rgba(0, 0, 0, 0.35),
+    inset 0 0.02em 0 rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 0.16em;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: center center;
 }
 
-.zedx-logo-corner-tl {
-  top: 0;
-  left: 0;
-  border-width: 2px 0 0 2px;
+.sale-sticker-text {
+  display: block;
+  width: 92%;
+  text-shadow: 0 0.04em 0 rgba(0, 0, 0, 0.35);
 }
 
-.zedx-logo-corner-tr {
-  top: 0;
-  right: 0;
-  border-width: 2px 2px 0 0;
+.sale-sticker--landed {
+  pointer-events: auto;
+  animation: sale-sticker-fly-in 1.15s cubic-bezier(0.22, 1.1, 0.36, 1) forwards;
 }
 
-.zedx-logo-corner-bl {
-  bottom: 0;
-  left: 0;
-  border-width: 0 0 2px 2px;
+.sale-sticker--static {
+  opacity: 1;
+  transform: rotate(-10deg);
+  animation: none;
+  pointer-events: auto;
 }
 
-.zedx-logo-corner-br {
-  bottom: 0;
-  right: 0;
-  border-width: 0 2px 2px 0;
+.sale-sticker:hover {
+  filter: brightness(1.08);
+}
+
+.sale-sticker:active {
+  filter: brightness(0.96);
 }
 
 .animate-hero-fade-up {
@@ -458,9 +440,15 @@
   .animate-hero-fade-in,
   .animate-hero-title-in,
   .animate-scroll-hint-bounce,
-  .zedx-logo-shimmer,
-  .zedx-logo-emblem {
+  .sale-sticker--landed {
     animation: none !important;
+  }
+
+  .sale-sticker--landed,
+  .sale-sticker--static {
+    opacity: 1;
+    pointer-events: auto;
+    transform: rotate(-10deg);
   }
 }
 

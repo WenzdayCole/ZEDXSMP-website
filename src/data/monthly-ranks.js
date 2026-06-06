@@ -23,21 +23,19 @@ export const monthlyRanks = [
     nameClass: "text-[#FFE033] drop-shadow-[0_0_28px_rgba(255,224,51,0.45)]",
     popular: false,
     description:
-      "Monthly VIP LuckPerms group for 30 days — yellow VIP tag, 3 homes, 20 orders, 20 AH listings, and quality-of-life commands.",
-    commands: ["/rtp", "/shop", "/pvp", "/tpa"],
+      "Monthly VIP LuckPerms group for 30 days — yellow VIP tag, 3 homes, 20 orders, and 20 AH listings.",
+    commands: [],
     perks: [
       "VIP chat & tab name tag (yellow VIP styling in-game)",
       "3 homes",
       "20 orders",
       "20 AH",
-      "Access to VIP quality-of-life commands",
     ],
     storeFeatures: [
       "VIP name tag",
       "3 homes",
       "20 orders",
       "20 AH",
-      "/rtp · /shop · /pvp · /tpa",
     ],
     kit: { items: [] },
   },
