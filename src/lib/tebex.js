@@ -215,19 +215,31 @@ export async function validateTebexWebstore(webstoreId) {
   return { ok: true, name: store?.name, url: store?.webstore_url };
 }
 
-export function normalizeBasketReturnBase(siteUrl) {
-  const base = String(siteUrl || "").replace(/\/$/, "");
-  if (!base) return "https://shop.zedxsmp.fun";
+/** Store app is on shop.zedxsmp.fun — root zedxsmp.fun has no valid app SSL. */
+export function normalizeSiteOrigin(siteUrl) {
+  const trimmed = String(siteUrl || "").trim().replace(/\/$/, "");
+  if (!trimmed) return "https://shop.zedxsmp.fun";
 
   try {
-    const url = new URL(base);
-    if (url.hostname === "shop.zedxsmp.fun" || url.hostname === "zedxsmp.fun") {
+    const url = new URL(
+      trimmed.startsWith("http://") || trimmed.startsWith("https://")
+        ? trimmed
+        : `https://${trimmed}`,
+    );
+    if (url.hostname === "zedxsmp.fun") {
+      url.hostname = "shop.zedxsmp.fun";
+    }
+    if (url.hostname === "shop.zedxsmp.fun") {
       url.protocol = "https:";
     }
     return `${url.protocol}//${url.host}`;
   } catch {
-    return base;
+    return trimmed;
   }
+}
+
+export function normalizeBasketReturnBase(siteUrl) {
+  return normalizeSiteOrigin(siteUrl);
 }
 
 /** Tebex cancel_url must be a simple absolute URL (query strings often break Cancel). */
@@ -424,10 +436,10 @@ async function addPackageWithUsernameFallbacks({
  */
 export function resolveTebexBasketReturnUrl(siteUrl) {
   const override = process.env.TEBEX_BASKET_RETURN_URL?.trim();
-  if (override) return override.replace(/\/$/, "");
+  if (override) return normalizeSiteOrigin(override);
 
   const base = String(siteUrl || "").replace(/\/$/, "");
-  if (base) return base;
+  if (base) return normalizeSiteOrigin(base);
 
   return "http://localhost:3000";
 }
@@ -510,15 +522,15 @@ export function resolveTebexBasketReturnUrlForCheckout({
   requestHeaders,
 } = {}) {
   const override = process.env.TEBEX_BASKET_RETURN_URL?.trim();
-  if (override) return override.replace(/\/$/, "");
+  if (override) return normalizeSiteOrigin(override);
 
   const fromClient = parseUrlOrigin(returnOrigin);
   if (fromClient && isAllowedBasketReturnOrigin(fromClient)) {
-    return fromClient;
+    return normalizeSiteOrigin(fromClient);
   }
 
   const fromRequest = inferBasketReturnUrlFromRequestHeaders(requestHeaders);
-  if (fromRequest) return fromRequest;
+  if (fromRequest) return normalizeSiteOrigin(fromRequest);
 
   return resolveTebexBasketReturnUrl(siteUrl);
 }
@@ -526,7 +538,7 @@ export function resolveTebexBasketReturnUrlForCheckout({
 /** Tebex Minecraft auth callbacks must use a public HTTPS URL (not localhost). */
 export function resolveTebexAuthSiteUrl(siteUrl) {
   const override = process.env.TEBEX_AUTH_RETURN_URL?.trim();
-  if (override) return override.replace(/\/$/, "");
+  if (override) return normalizeSiteOrigin(override);
 
   const base = String(siteUrl || "").replace(/\/$/, "");
   if (!base) return "https://shop.zedxsmp.fun";
@@ -536,12 +548,12 @@ export function resolveTebexAuthSiteUrl(siteUrl) {
       process.env.NEXT_PUBLIC_SITE_URL || "https://shop.zedxsmp.fun"
     ).trim();
     if (prod && !/localhost|127\.0\.0\.1/i.test(prod)) {
-      return prod.replace(/\/$/, "");
+      return normalizeSiteOrigin(prod);
     }
     return "https://shop.zedxsmp.fun";
   }
 
-  return base;
+  return normalizeSiteOrigin(base);
 }
 
 /** @deprecated Use resolveTebexAuthSiteUrl */

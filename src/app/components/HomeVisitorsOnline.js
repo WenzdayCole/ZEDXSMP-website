@@ -15,7 +15,7 @@ export default function HomeVisitorsOnline() {
           <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
         </span>
         <span
-          className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80"
+          className="inline-block min-w-[10.5rem] text-center text-[10px] font-black uppercase tabular-nums tracking-[0.2em] text-white/80"
           suppressHydrationWarning
         >
           {playerCount != null

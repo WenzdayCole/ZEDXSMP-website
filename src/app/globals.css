@@ -197,7 +197,7 @@
 
 @keyframes hero-title-in {
   from {
-    opacity: 0;
+    opacity: 1;
     transform: translate3d(0, 36px, 0) scale3d(0.9, 0.9, 1);
     filter: blur(6px);
   }
@@ -206,6 +206,22 @@
     transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
     filter: blur(0);
   }
+}
+
+.hero-smp-stack {
+  display: inline-grid;
+  vertical-align: baseline;
+  isolation: isolate;
+  contain: layout style;
+}
+
+.hero-smp-text {
+  grid-area: 1 / 1;
+}
+
+.hero-smp-stack .sale-sticker {
+  grid-area: 1 / 1;
+  contain: layout style paint;
 }
 
 @keyframes scroll-hint-bounce {

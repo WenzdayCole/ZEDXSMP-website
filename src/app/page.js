@@ -1,8 +1,12 @@
 import HomePageClient from "@/app/components/HomePageClient";
-import HomeHeroLogo from "@/app/components/HomeHeroLogo";
+import HomeHeroSticker from "@/app/components/HomeHeroSticker";
 import HomeVisitorsOnline from "@/app/components/HomeVisitorsOnline";
 import HomePromoImage from "@/app/components/HomePromoImage";
 import SiteFooter from "@/app/components/SiteFooter";
+
+export const metadata = {
+  alternates: { canonical: "/" },
+};
 
 const FEATURE_ENTER_DELAYS = [
   "animate-delay-1500",
@@ -78,7 +82,15 @@ export default function HomePage() {
         <HomeVisitorsOnline />
 
         <div className="animate-hero-title-in animate-delay-200 relative mb-2 text-center">
-          <HomeHeroLogo />
+          <h1 className="select-none text-[18vw] font-black uppercase italic leading-none tracking-tighter md:text-[12rem]">
+            ZEDX{" "}
+            <span className="hero-smp-stack">
+              <span className="hero-smp-text relative z-0 text-purple-500 drop-shadow-[0_0_30px_#a855f780]">
+                SMP
+              </span>
+              <HomeHeroSticker />
+            </span>
+          </h1>
         </div>
 
         <p className="animate-hero-fade-up animate-delay-350 mb-12 ml-[1.2em] text-center text-[10px] font-medium uppercase tracking-[1.2em] text-purple-200">
@@ -98,7 +110,7 @@ export default function HomePage() {
             A premium survival experience designed for players who value
             community, fair play, and a server that actually listens.
           </p>
-          <p className="mx-auto mt-4 max-w-xl text-[11px] font-bold uppercase leading-relaxed tracking-wide text-white/40">
+          <p className="mx-auto mt-4 max-w-xl text-[11px] font-bold uppercase leading-relaxed tracking-wide text-white/55">
             Join at zedxsmp.fun — no modpack required. Java & Bedrock supported
             via Geyser.
           </p>

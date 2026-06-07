@@ -21,7 +21,7 @@ export default function SiteFooter({ className = "" }) {
           <button
             type="button"
             onClick={() => setOpenPolicy("terms")}
-            className="text-[7px] font-bold uppercase tracking-[0.18em] text-white/35 transition-colors hover:text-white/55"
+            className="text-[7px] font-bold uppercase tracking-[0.18em] text-white/50 transition-colors hover:text-white/70"
           >
             Terms of Service
           </button>
@@ -31,7 +31,7 @@ export default function SiteFooter({ className = "" }) {
           <button
             type="button"
             onClick={() => setOpenPolicy("refund")}
-            className="text-[7px] font-bold uppercase tracking-[0.18em] text-white/35 transition-colors hover:text-white/55"
+            className="text-[7px] font-bold uppercase tracking-[0.18em] text-white/50 transition-colors hover:text-white/70"
           >
             Refund Policy
           </button>

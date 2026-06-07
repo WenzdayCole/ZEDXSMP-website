@@ -82,7 +82,7 @@ export async function startTebexCheckout({ packageId, username, returnPath } = {
 
     throw new Error(
       data.error ||
-        "Minecraft login is required. Add TEBEX_AUTH_RETURN_URL=https://zedxsmp.fun to .env.local if testing on localhost.",
+        "Minecraft login is required. Add TEBEX_AUTH_RETURN_URL=https://shop.zedxsmp.fun to .env.local if testing on localhost.",
     );
   }
 
