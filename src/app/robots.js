@@ -1,6 +1,8 @@
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://shop.zedxsmp.fun";
+import { getSiteUrl } from "@/lib/site-url";
 
 export default function robots() {
+  const siteUrl = getSiteUrl();
+
   return {
     rules: {
       userAgent: "*",

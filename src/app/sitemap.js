@@ -1,6 +1,7 @@
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://shop.zedxsmp.fun";
+import { getSiteUrl } from "@/lib/site-url";
 
 export default function sitemap() {
+  const siteUrl = getSiteUrl();
   const routes = [
     "",
     "/ranks",

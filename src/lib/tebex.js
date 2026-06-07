@@ -3,6 +3,7 @@ import {
   sanitizeMinecraftUsername,
 } from "@/lib/minecraft-username";
 import { sanitizeCheckoutReturnPath } from "@/lib/checkout-return";
+import { normalizeSiteOrigin } from "@/lib/site-url";
 
 const TEBEX_API = "https://headless.tebex.io/api";
 
@@ -213,29 +214,6 @@ export async function validateTebexWebstore(webstoreId) {
 
   const store = unwrapBasket(parsed.data);
   return { ok: true, name: store?.name, url: store?.webstore_url };
-}
-
-/** Store app is on shop.zedxsmp.fun — root zedxsmp.fun has no valid app SSL. */
-export function normalizeSiteOrigin(siteUrl) {
-  const trimmed = String(siteUrl || "").trim().replace(/\/$/, "");
-  if (!trimmed) return "https://shop.zedxsmp.fun";
-
-  try {
-    const url = new URL(
-      trimmed.startsWith("http://") || trimmed.startsWith("https://")
-        ? trimmed
-        : `https://${trimmed}`,
-    );
-    if (url.hostname === "zedxsmp.fun") {
-      url.hostname = "shop.zedxsmp.fun";
-    }
-    if (url.hostname === "shop.zedxsmp.fun") {
-      url.protocol = "https:";
-    }
-    return `${url.protocol}//${url.host}`;
-  } catch {
-    return trimmed;
-  }
 }
 
 export function normalizeBasketReturnBase(siteUrl) {
