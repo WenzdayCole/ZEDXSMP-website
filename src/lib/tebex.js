@@ -70,9 +70,7 @@ function formatTebexError(message, storeUrl) {
   }
 
   if (lower.includes("unauthorized") || lower.includes("authentication")) {
-    return (
-      "Tebex rejected your API keys. Check TEBEX_PUBLIC_TOKEN and TEBEX_PRIVATE_KEY in .env.local."
-    );
+    return "Tebex rejected your API keys. Check TEBEX_PUBLIC_TOKEN and TEBEX_PRIVATE_KEY in .env.local.";
   }
 
   if (storeUrl && lower.includes("unavailable")) {
@@ -112,7 +110,10 @@ export function getTebexConfig() {
   }
 
   if (!publicToken) {
-    return { ok: false, error: "TEBEX_PUBLIC_TOKEN is missing from .env.local" };
+    return {
+      ok: false,
+      error: "TEBEX_PUBLIC_TOKEN is missing from .env.local",
+    };
   }
 
   return { ok: true, webstoreId, publicToken, privateKey, siteUrl, storeUrl };
@@ -255,14 +256,11 @@ export async function createTebexBasket({
     body.username = sanitizeMinecraftUsername(username);
   }
 
-  const response = await fetch(
-    `${TEBEX_API}/accounts/${webstoreId}/baskets`,
-    {
-      method: "POST",
-      headers: authHeaders(publicToken, privateKey),
-      body: JSON.stringify(body),
-    },
-  );
+  const response = await fetch(`${TEBEX_API}/accounts/${webstoreId}/baskets`, {
+    method: "POST",
+    headers: authHeaders(publicToken, privateKey),
+    body: JSON.stringify(body),
+  });
 
   const parsed = await parseTebexResponse(response);
   if (!parsed.ok) {
@@ -332,17 +330,16 @@ export async function addTebexPackage({
   if (usernameId) {
     body.variable_data = { username_id: String(usernameId) };
   } else if (variableUsername) {
-    body.variable_data = { username: sanitizeMinecraftUsername(variableUsername) };
+    body.variable_data = {
+      username: sanitizeMinecraftUsername(variableUsername),
+    };
   }
 
-  const response = await fetch(
-    `${TEBEX_API}/baskets/${basketIdent}/packages`,
-    {
-      method: "POST",
-      headers: authHeaders(publicToken, privateKey),
-      body: JSON.stringify(body),
-    },
-  );
+  const response = await fetch(`${TEBEX_API}/baskets/${basketIdent}/packages`, {
+    method: "POST",
+    headers: authHeaders(publicToken, privateKey),
+    body: JSON.stringify(body),
+  });
 
   const parsed = await parseTebexResponse(response);
   if (!parsed.ok) {
@@ -476,9 +473,7 @@ function inferBasketReturnUrlFromRequestHeaders(headers) {
     }
   }
 
-  const host = (
-    headers.get("x-forwarded-host") || headers.get("host") || ""
-  )
+  const host = (headers.get("x-forwarded-host") || headers.get("host") || "")
     .split(",")[0]
     ?.trim();
   if (host && /localhost|127\.0\.0\.1/i.test(host)) {
@@ -780,8 +775,7 @@ export async function createTebexCheckoutSession({
   });
 
   if (!added.ok) {
-    const needsLogin =
-      added.requiresLogin || isRequiresLoginError(added.error);
+    const needsLogin = added.requiresLogin || isRequiresLoginError(added.error);
 
     if (needsLogin) {
       const authRedirect = await authCheckoutRedirect({

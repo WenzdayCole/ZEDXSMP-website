@@ -7,8 +7,8 @@ import { monthlyRanks as rankDetails } from "@/data/monthly-ranks";
 import SiteFooter from "@/app/components/SiteFooter";
 
 const RANK_STATS = {
-  vip: { homes: "3", ah: "20", orders: "20", shards: "1×" },
-  mvp: { homes: "5", ah: "30", orders: "30", shards: "1.5×" },
+  vip: { homes: "3", ah: "20", orders: "20" },
+  mvp: { homes: "5", ah: "30", orders: "30" },
   "zedx-plus": { homes: "7", ah: "40", orders: "40", shards: "2×" },
 };
 
@@ -104,7 +104,7 @@ function RankCard({ rank, checkout, isLoading }) {
                 ["Homes", stats.homes],
                 ["AH", stats.ah],
                 ["Orders", stats.orders],
-                ["Shards", stats.shards],
+                ...(stats.shards ? [["Shards", stats.shards]] : []),
               ].map(([label, value], i) => (
                 <div
                   key={label}
@@ -115,7 +115,7 @@ function RankCard({ rank, checkout, isLoading }) {
                   </span>
                   <span
                     className="font-mono text-sm font-bold text-white"
-                    style={{ color: i === 3 ? rank.accent : undefined }}
+                    style={{ color: label === "Shards" ? rank.accent : undefined }}
                   >
                     {value}
                   </span>
