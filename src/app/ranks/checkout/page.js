@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCheckout } from "@/context/CheckoutContext";
-import { isValidPackageId } from "@/lib/checkout-client";
+import { getProduct } from "@/lib/store-products";
 
 function CheckoutBridge() {
   const router = useRouter();
@@ -15,12 +15,12 @@ function CheckoutBridge() {
     if (opened.current) return;
     opened.current = true;
 
-    const packageId = searchParams.get("packageId");
+    const productId = searchParams.get("productId") || searchParams.get("packageId");
     const name = searchParams.get("name") || "Rank";
     const price = searchParams.get("price") || "";
 
-    if (packageId && isValidPackageId(packageId)) {
-      checkout(packageId, name, { price });
+    if (productId && getProduct(productId)) {
+      checkout(productId, name, { price });
     }
 
     router.replace("/ranks", { scroll: false });

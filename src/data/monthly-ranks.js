@@ -1,4 +1,4 @@
-import { TEBEX_RANK_PACKAGES } from "@/data/tebex-packages";
+import { RANK_SLUG_TO_PRODUCT } from "@/lib/store-products";
 
 /**
  * Monthly ranks — synced with creator.tebex.io package names, prices, and descriptions.
@@ -14,7 +14,8 @@ export const monthlyRanks = [
     price: "£2.99",
     wasPrice: "£4.99",
     period: "/mo",
-    tebexPackageId: TEBEX_RANK_PACKAGES.vip,
+    productId: RANK_SLUG_TO_PRODUCT.vip,
+    tebexPackageId: RANK_SLUG_TO_PRODUCT.vip,
     accent: "#FFE033",
     accentMuted: "rgba(255, 224, 51, 0.55)",
     glow: "rgba(255, 224, 51, 0.2)",
@@ -53,7 +54,8 @@ export const monthlyRanks = [
     price: "£4.99",
     wasPrice: "£6.99",
     period: "/mo",
-    tebexPackageId: TEBEX_RANK_PACKAGES.mvp,
+    productId: RANK_SLUG_TO_PRODUCT.mvp,
+    tebexPackageId: RANK_SLUG_TO_PRODUCT.mvp,
     accent: "#FFAA00",
     accentMuted: "rgba(255, 170, 0, 0.55)",
     glow: "rgba(255, 170, 0, 0.22)",
@@ -95,7 +97,8 @@ export const monthlyRanks = [
     price: "£9.99",
     wasPrice: "£13.99",
     period: "/mo",
-    tebexPackageId: TEBEX_RANK_PACKAGES.zedxPlus,
+    productId: RANK_SLUG_TO_PRODUCT["zedx-plus"],
+    tebexPackageId: RANK_SLUG_TO_PRODUCT["zedx-plus"],
     accent: "#FF55FF",
     accentMuted: "rgba(255, 85, 255, 0.55)",
     secondaryAccent: "#00C3FF",
@@ -151,7 +154,7 @@ export function getStoreRankCards() {
     nameClass: rank.nameClass,
     features: rank.storeFeatures,
     popular: rank.popular,
-    id: rank.tebexPackageId,
+    id: rank.productId,
     link: `/ranks/about#${rank.id}`,
   }));
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function CheckoutRedirectScreen({
   title = "Connecting to payment",
-  message = "Taking you to Tebex secure checkout…",
+  message = "Taking you to Stripe secure checkout…",
   error,
   backHref = "/ranks",
   overlay = false,

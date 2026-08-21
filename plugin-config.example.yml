@@ -1,0 +1,52 @@
+# Match these product ids in ZedxWebStore config.yml
+# Website does NOT run Minecraft commands — your plugin does.
+
+secret: "same value as ZEDX_STORE_SECRET on the website"
+port: 28787
+
+products:
+  rank-vip:
+    commands:
+      - "lp user {player} parent add vip"
+  rank-mvp:
+    commands:
+      - "lp user {player} parent add mvp"
+  rank-zedxplus:
+    commands:
+      - "lp user {player} parent add zedxplus"
+  rank-vip-1mo:
+    commands:
+      - "lp user {player} parent addtemp vip 30d"
+  rank-mvp-1mo:
+    commands:
+      - "lp user {player} parent addtemp mvp 30d"
+  rank-zedxplus-1mo:
+    commands:
+      - "lp user {player} parent addtemp zedxplus 30d"
+  rank-vip-remove:
+    commands:
+      - "lp user {player} parent remove vip"
+  rank-mvp-remove:
+    commands:
+      - "lp user {player} parent remove mvp"
+  rank-zedxplus-remove:
+    commands:
+      - "lp user {player} parent remove zedxplus"
+  key-common:
+    commands:
+      - "crates givekey {player} common 1"
+  key-epic:
+    commands:
+      - "crates givekey {player} epic 1"
+  key-rare:
+    commands:
+      - "crates givekey {player} rare 1"
+  key-legendary:
+    commands:
+      - "crates givekey {player} legendary 1"
+  key-amethyst:
+    commands:
+      - "crates givekey {player} amethyst 1"
+  key-zedxplus:
+    commands:
+      - "crates givekey {player} zedxplus 1"

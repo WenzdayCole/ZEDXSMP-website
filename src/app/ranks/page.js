@@ -11,9 +11,10 @@ import { getRankSaleDiscountPercent } from "@/lib/rank-sale-price";
 import { useCheckoutPageRestore } from "@/hooks/useCheckoutPageRestore";
 import { usePageRestoreKey } from "@/hooks/usePageRestoreKey";
 import SiteFooter from "@/app/components/SiteFooter";
+import AuthNav from "@/app/components/AuthNav";
 
 export default function RanksPage() {
-  const { checkout, isLoading, resetCheckoutUi } = useCheckout();
+  const { checkout, isLoading, resetCheckoutUi, addItem } = useCheckout();
   const pageKey = usePageRestoreKey();
   const [selectedCrate, setSelectedCrate] = useState(null);
 
@@ -49,19 +50,22 @@ export default function RanksPage() {
   return (
     <main
       key={pageKey}
-      className="relative z-10 min-h-screen overflow-x-hidden p-6 font-sans text-white selection:bg-purple-500/30 md:p-12"
+      className="relative z-10 min-h-screen overflow-x-hidden p-6 pb-40 font-sans text-white selection:bg-purple-500/30 md:p-12"
     >
       <div className="relative mx-auto max-w-7xl">
         <header className="mb-20 text-center md:text-left">
-          <Link
-            href="/"
-            className="group inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] text-purple-500 transition-all hover:text-white"
-          >
-            <span className="transition-transform group-hover:-translate-x-1">
-              ←
-            </span>{" "}
-            Back to Home
-          </Link>
+          <div className="flex items-center justify-between gap-4">
+            <Link
+              href="/"
+              className="group inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] text-purple-500 transition-all hover:text-white"
+            >
+              <span className="transition-transform group-hover:-translate-x-1">
+                ←
+              </span>{" "}
+              Back to Home
+            </Link>
+            <AuthNav />
+          </div>
           <h1 className="mt-4 text-6xl font-black uppercase italic leading-none tracking-tighter md:text-7xl">
             Server <span className="text-purple-500">Store</span>
           </h1>
@@ -168,6 +172,7 @@ export default function RanksPage() {
                   onClick={() =>
                     checkout(rank.id, rank.checkoutName, {
                       price: rank.price + rank.period,
+                      type: "rank",
                     })
                   }
                   style={{ "--rank-accent": rank.accent }}
@@ -176,6 +181,13 @@ export default function RanksPage() {
                   {isLoading(rank.checkoutName)
                     ? "Processing..."
                     : "Purchase Rank"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addItem(rank.id)}
+                  className="relative z-20 mt-2 w-full py-2 text-[10px] font-black uppercase tracking-[0.25em] text-white/35 hover:text-white"
+                >
+                  Add monthly to basket
                 </button>
                 <Link
                   href={rank.link}
@@ -206,7 +218,7 @@ export default function RanksPage() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {crateKeys.map((key) => (
               <motion.div
-                layoutId={`crate-${key.tebexPackageId}`}
+                layoutId={`crate-${key.productId}`}
                 key={key.name}
                 role="button"
                 tabIndex={0}
@@ -260,7 +272,7 @@ export default function RanksPage() {
               className="absolute inset-0 bg-[#050208]/95 backdrop-blur-2xl transform-gpu"
             />
             <motion.div
-              layoutId={`crate-${selectedCrate.tebexPackageId}`}
+              layoutId={`crate-${selectedCrate.productId}`}
               transition={{ type: "spring", stiffness: 350, damping: 35 }}
               className={`relative z-10 w-full max-w-2xl overflow-hidden rounded-[4rem] border bg-[#0a0a0a] p-8 shadow-2xl md:p-16 ${selectedCrate.border}`}
               onClick={(e) => e.stopPropagation()}
@@ -291,22 +303,35 @@ export default function RanksPage() {
                 <p className="mb-8 max-w-lg text-sm leading-relaxed text-white/60 md:mb-12 md:text-base">
                   {selectedCrate.description}
                 </p>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    checkout(
-                      selectedCrate.tebexPackageId,
-                      selectedCrate.tebexName,
-                      { price: selectedCrate.price },
-                    );
-                  }}
-                  className="w-full rounded-3xl bg-white py-5 text-[12px] font-black uppercase tracking-[0.2em] text-black shadow-2xl transition-all hover:bg-purple-500 hover:text-white md:py-6"
-                >
-                  {isLoading(selectedCrate.tebexName)
-                    ? "Generating Receipt..."
-                    : `Purchase for ${selectedCrate.price}`}
-                </button>
+                <div className="grid w-full gap-3">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addItem(selectedCrate.productId);
+                      setSelectedCrate(null);
+                    }}
+                    className="w-full rounded-3xl border border-white/15 bg-white/5 py-4 text-[12px] font-black uppercase tracking-[0.2em] text-white/80 transition-all hover:bg-white/10"
+                  >
+                    Add to basket
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      checkout(
+                        selectedCrate.productId,
+                        selectedCrate.tebexName,
+                        { price: selectedCrate.price, type: "key" },
+                      );
+                    }}
+                    className="w-full rounded-3xl bg-white py-5 text-[12px] font-black uppercase tracking-[0.2em] text-black shadow-2xl transition-all hover:bg-purple-500 hover:text-white md:py-6"
+                  >
+                    {isLoading(selectedCrate.tebexName)
+                      ? "Generating Receipt..."
+                      : `Purchase for ${selectedCrate.price}`}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

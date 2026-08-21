@@ -84,8 +84,8 @@ export default function CheckoutSuccessBanner() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-sm text-sm font-medium leading-relaxed text-white/70">
-            Your purchase went through. Ranks and crate keys are delivered to
-            your Minecraft account — usually within a few minutes.
+            Your purchase went through. Ranks and crate keys are sent in-game
+            right after payment. Stripe will email your receipt.
           </p>
 
           <p className="mx-auto mt-3 max-w-sm text-[11px] font-bold uppercase tracking-wide text-white/45">

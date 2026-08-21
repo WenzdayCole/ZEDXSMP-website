@@ -1,4 +1,4 @@
-import { TEBEX_CRATE_PACKAGES } from "@/data/tebex-packages";
+import { KEY_NAME_TO_PRODUCT } from "@/lib/store-products";
 
 /** Crate keys for /ranks — names/prices match creator.tebex.io/packages */
 export const crateKeys = [
@@ -10,7 +10,8 @@ export const crateKeys = [
     border: "border-cyan-500/20",
     hover: "hover:border-cyan-500/50",
     glow: "shadow-cyan-500/10",
-    tebexPackageId: TEBEX_CRATE_PACKAGES.common,
+    productId: KEY_NAME_TO_PRODUCT.Common,
+    tebexPackageId: KEY_NAME_TO_PRODUCT.Common,
     img: "/keys/common.png",
     crateImg: "/keys/commoncrate.png",
     description:
@@ -24,7 +25,8 @@ export const crateKeys = [
     border: "border-purple-500/20",
     hover: "hover:border-purple-500/50",
     glow: "shadow-purple-500/10",
-    tebexPackageId: TEBEX_CRATE_PACKAGES.epic,
+    productId: KEY_NAME_TO_PRODUCT.Epic,
+    tebexPackageId: KEY_NAME_TO_PRODUCT.Epic,
     img: "/keys/epic.png",
     crateImg: "/keys/epiccrate.png",
     description:
@@ -38,7 +40,8 @@ export const crateKeys = [
     border: "border-yellow-500/20",
     hover: "hover:border-yellow-500/50",
     glow: "shadow-yellow-500/10",
-    tebexPackageId: TEBEX_CRATE_PACKAGES.rare,
+    productId: KEY_NAME_TO_PRODUCT.Rare,
+    tebexPackageId: KEY_NAME_TO_PRODUCT.Rare,
     img: "/keys/rare.png",
     crateImg: "/keys/rarecrate.png",
     description:
@@ -52,7 +55,8 @@ export const crateKeys = [
     border: "border-red-500/20",
     hover: "hover:border-red-500/50",
     glow: "shadow-red-500/10",
-    tebexPackageId: TEBEX_CRATE_PACKAGES.legendary,
+    productId: KEY_NAME_TO_PRODUCT.Legendary,
+    tebexPackageId: KEY_NAME_TO_PRODUCT.Legendary,
     img: "/keys/legendary.png",
     crateImg: "/keys/legendarycrate.png",
     popular: true,
@@ -67,7 +71,8 @@ export const crateKeys = [
     border: "border-green-500/20",
     hover: "hover:border-green-500/50",
     glow: "shadow-green-500/10",
-    tebexPackageId: TEBEX_CRATE_PACKAGES.amethyst,
+    productId: KEY_NAME_TO_PRODUCT.Amethyst,
+    tebexPackageId: KEY_NAME_TO_PRODUCT.Amethyst,
     img: "/keys/amethyst.png",
     crateImg: "/keys/amethystcrate.png",
     description:
@@ -82,7 +87,8 @@ export const crateKeys = [
     border: "border-pink-500/40",
     hover: "hover:border-pink-500/80",
     glow: "shadow-pink-500/20",
-    tebexPackageId: TEBEX_CRATE_PACKAGES.zedxPlus,
+    productId: KEY_NAME_TO_PRODUCT["ZEDX+"],
+    tebexPackageId: KEY_NAME_TO_PRODUCT["ZEDX+"],
     img: "/keys/zedx+.png",
     crateImg: "/keys/zedx+crate.png",
     description:

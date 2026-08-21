@@ -145,13 +145,15 @@ export default function HomePageClient() {
               className="pointer-events-none absolute inset-0 animate-nav-ring-pulse rounded-full ring-1 ring-purple-400/50"
               aria-hidden
             />
-            {["Rules", "Ranks", "Keys", "Commands"].map((item) => {
+            {["Rules", "Ranks", "Keys", "Commands", "Login"].map((item) => {
               const path =
                 item === "Ranks"
                   ? "/ranks/about"
                   : item === "Keys"
                     ? "/ranks#keys"
-                    : `/${item.toLowerCase()}`;
+                    : item === "Login"
+                      ? "/login"
+                      : `/${item.toLowerCase()}`;
               return (
                 <Link
                   key={item}

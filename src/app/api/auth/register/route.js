@@ -1,0 +1,57 @@
+import { NextResponse } from "next/server";
+import { isValidMinecraftUsernameFormat } from "@/lib/minecraft-username";
+import { setSessionCookie } from "@/lib/web-session";
+import { isPlayerRegistered, verifyPlayerPassword } from "@/lib/zedx-auth";
+import { clientIp, rateLimit } from "@/lib/ip-rate-limit";
+
+export const dynamic = "force-dynamic";
+
+export async function POST(req) {
+  if (!rateLimit(`register:${clientIp(req)}`)) {
+    return NextResponse.json({ error: "Too many attempts. Try again shortly." }, { status: 429 });
+  }
+  try {
+    const body = await req.json();
+    const player = String(body.player || "").trim();
+    const password = String(body.password || "");
+    const email = String(body.email || "").trim().toLowerCase();
+
+    if (!isValidMinecraftUsernameFormat(player)) {
+      return NextResponse.json({ error: "Invalid in-game username." }, { status: 400 });
+    }
+    if (!email.includes("@")) {
+      return NextResponse.json({ error: "Enter a valid email." }, { status: 400 });
+    }
+
+    const registered = await isPlayerRegistered(player);
+    if (!registered) {
+      return NextResponse.json(
+        {
+          error:
+            "This username is not registered in-game. Join zedxsmp.fun and run /register <password> <password> first.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const result = await verifyPlayerPassword(player, password);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
+    }
+
+    await setSessionCookie({
+      player: result.player,
+      uuid: result.uuid,
+      email,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      player: result.player,
+      uuid: result.uuid,
+    });
+  } catch (err) {
+    console.error("auth register error:", err);
+    return NextResponse.json({ error: "Could not link account." }, { status: 500 });
+  }
+}

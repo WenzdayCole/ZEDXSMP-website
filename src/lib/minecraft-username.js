@@ -1,4 +1,4 @@
-/** ZEDX uses Tebex "Geyser (Dot Prefix)" — Bedrock names often need a leading dot. */
+/** Floodgate / Geyser: Java = Steve, Bedrock = .Steve. Shop must send that exact name. */
 
 export function sanitizeMinecraftUsername(raw) {
   return String(raw || "")

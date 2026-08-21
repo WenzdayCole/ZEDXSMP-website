@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import PolicyModal from "@/app/components/PolicyModal";
 import {
   RefundPolicyContent,
@@ -35,6 +36,15 @@ export default function SiteFooter({ className = "" }) {
           >
             Refund Policy
           </button>
+          <span className="text-[7px] text-white/15" aria-hidden>
+            ·
+          </span>
+          <Link
+            href="/login"
+            className="text-[7px] font-bold uppercase tracking-[0.18em] text-white/50 transition-colors hover:text-white/70"
+          >
+            Login
+          </Link>
         </div>
         <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/65">
           © 2026 ZEDXSMP · The official website

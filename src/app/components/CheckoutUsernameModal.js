@@ -15,25 +15,52 @@ export default function CheckoutUsernameModal({
   open,
   itemName,
   itemPrice,
+  isRank = false,
   processing,
   error,
   onClose,
   onConfirm,
 }) {
   const [platform, setPlatform] = useState("java");
+  const [billing, setBilling] = useState("monthly");
   const [username, setUsername] = useState("");
   const [localError, setLocalError] = useState("");
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    if (open) {
-      setUsername("");
-      setLocalError("");
-      setPlatform("java");
-      const timer = setTimeout(() => inputRef.current?.focus(), 150);
-      return () => clearTimeout(timer);
-    }
+    if (!open) return;
+    setLocalError("");
+    setBilling("monthly");
+    let cancelled = false;
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.loggedIn && data.player) {
+          if (String(data.player).startsWith(".")) {
+            setPlatform("bedrock");
+            setUsername(String(data.player).slice(1));
+          } else {
+            setPlatform("java");
+            setUsername(data.player);
+          }
+        } else {
+          setUsername("");
+          setPlatform("java");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUsername("");
+          setPlatform("java");
+        }
+      });
+    const timer = setTimeout(() => inputRef.current?.focus(), 150);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -86,7 +113,7 @@ export default function CheckoutUsernameModal({
     }
 
     setLocalError("");
-    onConfirm(finalName);
+    onConfirm({ username: finalName, edition: platform, billing });
   }
 
   const displayError = localError || error;
@@ -155,6 +182,32 @@ export default function CheckoutUsernameModal({
                 <span className="font-bold text-purple-300">zedxsmp.fun</span>.
                 Items are delivered to this account in-game.
               </p>
+
+              {isRank && (
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5">
+                  {[
+                    { id: "monthly", label: "Pay monthly", hint: "Recurring" },
+                    { id: "once", label: "1 month only", hint: "No auto-renew" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      disabled={processing}
+                      onClick={() => setBilling(opt.id)}
+                      className={`min-h-[52px] rounded-2xl border px-3 py-3 text-left transition-colors active:scale-[0.98] ${
+                        billing === opt.id
+                          ? "border-purple-500 bg-purple-500/20 text-white"
+                          : "border-white/10 bg-white/5 text-white/40"
+                      }`}
+                    >
+                      <span className="block text-[10px] font-black uppercase tracking-widest">
+                        {opt.label}
+                      </span>
+                      <span className="text-[10px] text-white/40">{opt.hint}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6">
                 {[
@@ -233,8 +286,9 @@ export default function CheckoutUsernameModal({
 
                 {processing && (
                   <p className="mt-4 text-center text-[10px] leading-relaxed text-white/40">
-                    You&apos;ll complete payment on Tebex&apos;s secure page.
-                    We&apos;ll bring you back here when done.
+                    You&apos;ll complete payment on Stripe&apos;s secure page.
+                    Card, Apple Pay and Google Pay are available. We&apos;ll
+                    bring you back here when done.
                   </p>
                 )}
 
@@ -244,7 +298,7 @@ export default function CheckoutUsernameModal({
                   className="mt-5 w-full min-h-[52px] rounded-2xl bg-white py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-black transition-colors active:scale-[0.99] hover:bg-purple-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:mt-6 sm:tracking-[0.25em]"
                 >
                   {processing
-                    ? "Redirecting to Tebex…"
+                    ? "Redirecting to Stripe…"
                     : "Continue to payment"}
                 </button>
                 <button

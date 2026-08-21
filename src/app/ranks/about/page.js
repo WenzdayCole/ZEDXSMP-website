@@ -145,8 +145,9 @@ function RankCard({ rank, checkout, isLoading }) {
             <button
               type="button"
               onClick={() =>
-                checkout(rank.tebexPackageId, rank.tebexName, {
+                checkout(rank.productId, rank.tebexName, {
                   price: rank.price,
+                  type: "rank",
                 })
               }
               disabled={isLoading(rank.tebexName)}
@@ -244,7 +245,7 @@ export default function AboutPage() {
           </h1>
           <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/55">
             Perks, limits, and pricing for each monthly rank. Purchase through
-            Tebex at checkout.
+            Stripe at checkout. Delivery runs on the SMP after payment.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-2">

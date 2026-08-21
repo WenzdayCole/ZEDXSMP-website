@@ -6,28 +6,29 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import dynamic from "next/dynamic";
 import { flushSync } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import CheckoutRedirectScreen from "@/app/components/CheckoutRedirectScreen";
+import BasketBar from "@/app/components/BasketBar";
+import {
+  getProduct,
+  onceProductId,
+} from "@/lib/store-products";
+import { useCheckoutPageRestore } from "@/hooks/useCheckoutPageRestore";
+import { releaseCheckoutPageLock } from "@/lib/checkout-page-lock";
+import { persistCheckoutReturnPath } from "@/lib/checkout-return";
 
 const CheckoutUsernameModal = dynamic(
   () => import("@/app/components/CheckoutUsernameModal"),
   { ssr: false },
 );
-import { buildPayCheckoutUrl } from "@/lib/tebex-js";
-import { isValidPackageId, startTebexCheckout } from "@/lib/checkout-client";
-import { useCheckoutPageRestore } from "@/hooks/useCheckoutPageRestore";
-import { releaseCheckoutPageLock } from "@/lib/checkout-page-lock";
-import { persistCheckoutReturnPath } from "@/lib/checkout-return";
 
 const CheckoutContext = createContext(null);
-
-function resolveCheckoutUrl(url, ident) {
-  return url || buildPayCheckoutUrl(ident) || null;
-}
+const BASKET_KEY = "zedx-basket";
 
 function goToCheckout(url) {
   if (!url) return;
@@ -43,117 +44,13 @@ function CheckoutReturnHandler({ onReset }) {
   useEffect(() => {
     const status = searchParams.get("checkout");
     if (status !== "cancelled") return;
-
     releaseCheckoutPageLock();
     onReset();
-
     const hash = window.location.hash || "";
     router.replace(`/ranks${hash}`, { scroll: false });
   }, [searchParams, router, onReset]);
 
   return null;
-}
-
-function CheckoutResumeHandler() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const wantsResume = searchParams.get("checkout") === "resume";
-  const basketFromUrl = searchParams.get("basket");
-  const [resuming, setResuming] = useState(
-    () => wantsResume && Boolean(basketFromUrl),
-  );
-  const [resumeError, setResumeError] = useState(
-    () =>
-      wantsResume && !basketFromUrl
-        ? "Missing basket after Minecraft login. Please try again."
-        : "",
-  );
-
-  useEffect(() => {
-    const syncFromUrl = () => {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("checkout") !== "resume") {
-        setResuming(false);
-        setResumeError("");
-      }
-    };
-
-    syncFromUrl();
-    window.addEventListener("pageshow", syncFromUrl);
-    return () => window.removeEventListener("pageshow", syncFromUrl);
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (searchParams.get("checkout") !== "resume") return;
-
-    const basketIdent = searchParams.get("basket");
-    if (!basketIdent) {
-      setResumeError("Missing basket after Minecraft login. Please try again.");
-      return;
-    }
-
-    let cancelled = false;
-    setResuming(true);
-    setResumeError("");
-
-    fetch("/api/tebex-checkout/resume", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ basketIdent }),
-    })
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Could not continue checkout.");
-        }
-
-        const checkoutUrl = resolveCheckoutUrl(data.url, data.ident || basketIdent);
-        if (!checkoutUrl) {
-          throw new Error("Tebex did not return a checkout link.");
-        }
-
-        if (!cancelled) {
-          router.replace("/ranks", { scroll: false });
-          releaseCheckoutPageLock();
-          goToCheckout(checkoutUrl);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setResumeError(
-            err instanceof Error ? err.message : "Could not resume checkout.",
-          );
-          setResuming(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [searchParams, router]);
-
-  if (!resuming && !resumeError) return null;
-
-  if (resumeError) {
-    return (
-      <CheckoutRedirectScreen
-        overlay
-        title="Checkout interrupted"
-        error={resumeError}
-        backHref="/ranks"
-      />
-    );
-  }
-
-  return (
-    <CheckoutRedirectScreen
-      overlay
-      title="Minecraft linked"
-      message="Redirecting to Tebex to finish payment…"
-      error={resumeError || undefined}
-      backHref="/ranks"
-    />
-  );
 }
 
 function CheckoutProviderInner({ children }) {
@@ -162,6 +59,26 @@ function CheckoutProviderInner({ children }) {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
   const [loadingId, setLoadingId] = useState(null);
+  const [items, setItems] = useState([]);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(BASKET_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setItems(parsed);
+      }
+    } catch {
+      /* ignore */
+    }
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    localStorage.setItem(BASKET_KEY, JSON.stringify(items));
+  }, [items, ready]);
 
   const resetCheckoutUi = useCallback(() => {
     setModalOpen(false);
@@ -174,65 +91,97 @@ function CheckoutProviderInner({ children }) {
 
   useCheckoutPageRestore(resetCheckoutUi);
 
-  useEffect(() => {
-    return () => releaseCheckoutPageLock();
+  useEffect(() => () => releaseCheckoutPageLock(), []);
+
+  const addItem = useCallback((productId, quantity = 1) => {
+    const product = getProduct(productId);
+    if (!product) return;
+    setItems((current) => {
+      if (product.type === "rank") {
+        const withoutRanks = current.filter(
+          (item) => getProduct(item.product)?.type !== "rank",
+        );
+        return [...withoutRanks, { product: productId, quantity: 1 }];
+      }
+      const existing = current.find((item) => item.product === productId);
+      if (!existing) return [...current, { product: productId, quantity }];
+      return current.map((item) =>
+        item.product === productId
+          ? { ...item, quantity: Math.min(20, item.quantity + quantity) }
+          : item,
+      );
+    });
   }, []);
 
-  const closeModal = useCallback(() => {
-    resetCheckoutUi();
-  }, [resetCheckoutUi]);
+  const removeItem = useCallback((productId) => {
+    setItems((current) => current.filter((item) => item.product !== productId));
+  }, []);
 
-  const checkout = useCallback(
-    (packageId, itemName, { comingSoon, price } = {}) => {
-      if (comingSoon) {
-        alert(`${itemName} is coming soon to the ZEDX store.`);
-        return;
-      }
+  const clearBasket = useCallback(() => setItems([]), []);
 
-      if (!packageId || String(packageId).includes("REPLACE")) {
-        alert(
-          `Configuration missing: add a valid Tebex package ID for ${itemName}.`,
-        );
-        return;
-      }
+  const checkout = useCallback((productId, itemName, { price, type } = {}) => {
+    if (!getProduct(productId) && type !== "basket") {
+      alert(`Unknown product for ${itemName}.`);
+      return;
+    }
+    setLoadingId(itemName);
+    setPending({
+      productId,
+      itemName,
+      price: price || "",
+      type: type || getProduct(productId)?.type || "key",
+      items: null,
+    });
+    setError("");
+    setModalOpen(true);
+  }, []);
 
-      setLoadingId(itemName);
-      setPending({
-        packageId: String(packageId),
-        itemName,
-        price: price || "",
-      });
-      setError("");
-      setModalOpen(true);
-    },
-    [],
-  );
+  const checkoutBasket = useCallback(() => {
+    if (!items.length) return;
+    setPending({
+      productId: null,
+      itemName: "Basket",
+      price: "",
+      type: "basket",
+      items,
+    });
+    setError("");
+    setModalOpen(true);
+  }, [items]);
 
   const handleConfirm = useCallback(
-    async (username) => {
+    async ({ username, edition, billing }) => {
       if (!pending) return;
-
       setProcessing(true);
       setError("");
 
       try {
-        const { url, ident, requiresAuth } = await startTebexCheckout({
-          packageId: Number(pending.packageId),
-          username,
-          returnPath: `${window.location.pathname}${window.location.hash}`,
-        });
-
-        const checkoutUrl = resolveCheckoutUrl(url, ident);
-        if ((requiresAuth || checkoutUrl) && checkoutUrl) {
-          // Commit closed modal before navigation so bfcache Back does not restore a blocking overlay.
-          flushSync(() => {
-            resetCheckoutUi();
-          });
-          goToCheckout(checkoutUrl);
-          return;
+        let cartItems = pending.items;
+        if (!cartItems) {
+          let productId = pending.productId;
+          if (pending.type === "rank" && billing === "once") {
+            productId = onceProductId(productId);
+          }
+          cartItems = [{ product: productId, quantity: 1 }];
         }
 
-        throw new Error("Tebex did not return a checkout link.");
+        const response = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            player: username,
+            edition,
+            items: cartItems,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.url) {
+          throw new Error(data.error || "Could not start Stripe checkout.");
+        }
+
+        if (pending.type === "basket") clearBasket();
+        flushSync(() => resetCheckoutUi());
+        goToCheckout(data.url);
       } catch (err) {
         setProcessing(false);
         setError(
@@ -242,31 +191,51 @@ function CheckoutProviderInner({ children }) {
         );
       }
     },
-    [pending, resetCheckoutUi],
+    [pending, resetCheckoutUi, clearBasket],
   );
 
-  const value = {
-    checkout,
-    isLoading: (name) => loadingId === name,
-    loadingId,
-    clearCheckoutLoading: () => setLoadingId(null),
-    resetCheckoutUi,
-  };
+  const count = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const value = useMemo(
+    () => ({
+      checkout,
+      addItem,
+      removeItem,
+      checkoutBasket,
+      items,
+      count,
+      isLoading: (name) => loadingId === name,
+      loadingId,
+      clearCheckoutLoading: () => setLoadingId(null),
+      resetCheckoutUi,
+    }),
+    [
+      checkout,
+      addItem,
+      removeItem,
+      checkoutBasket,
+      items,
+      count,
+      loadingId,
+      resetCheckoutUi,
+    ],
+  );
 
   return (
     <CheckoutContext.Provider value={value}>
       <Suspense fallback={null}>
         <CheckoutReturnHandler onReset={resetCheckoutUi} />
-        <CheckoutResumeHandler />
       </Suspense>
       {children}
+      <BasketBar />
       <CheckoutUsernameModal
         open={modalOpen}
         itemName={pending?.itemName}
         itemPrice={pending?.price}
+        isRank={pending?.type === "rank"}
         processing={processing}
         error={error}
-        onClose={closeModal}
+        onClose={resetCheckoutUi}
         onConfirm={handleConfirm}
       />
     </CheckoutContext.Provider>
@@ -279,11 +248,8 @@ export function CheckoutProvider({ children }) {
   useEffect(() => {
     const onPageShow = (event) => {
       releaseCheckoutPageLock();
-      if (event.persisted) {
-        setInstanceKey((k) => k + 1);
-      }
+      if (event.persisted) setInstanceKey((k) => k + 1);
     };
-
     window.addEventListener("pageshow", onPageShow);
     return () => window.removeEventListener("pageshow", onPageShow);
   }, []);
