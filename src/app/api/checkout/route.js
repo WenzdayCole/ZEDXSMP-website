@@ -3,8 +3,15 @@ import { isValidMinecraftUsernameFormat } from "@/lib/minecraft-username";
 import { getProduct, validateCartItems } from "@/lib/store-products";
 import { checkoutOrigin, getStripe } from "@/lib/stripe";
 import { getSession } from "@/lib/web-session";
+import { clientIp, rateLimit } from "@/lib/ip-rate-limit";
 
 export async function POST(req) {
+  if (!rateLimit(`checkout:${clientIp(req)}`, { max: 10, windowMs: 60_000 })) {
+    return NextResponse.json(
+      { error: "Too many checkout attempts. Try again shortly." },
+      { status: 429 },
+    );
+  }
   try {
     const body = await req.json();
     const session = await getSession();
@@ -71,7 +78,7 @@ export async function POST(req) {
     const checkoutSession = await stripe.checkout.sessions.create({
       mode,
       line_items: stripeLines,
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card"],
       success_url: `${origin}/ranks?checkout=success`,
       cancel_url: `${origin}/ranks?checkout=cancelled`,
       metadata,

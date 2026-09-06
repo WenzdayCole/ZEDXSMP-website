@@ -5,6 +5,9 @@ import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
+const FULFILLED_KEY = "zedx_fulfilled";
+const REVOKED_KEY = "zedx_revoked";
+
 function subscriptionIdFromInvoice(invoice) {
   const parent = invoice.parent?.subscription_details?.subscription;
   const raw = parent || invoice.subscription;
@@ -40,6 +43,10 @@ async function fulfillCart({ metadata, orderId, revoke = false, rankOnly = false
   await deliverLines({ player, edition, orderId, lines, revoke });
 }
 
+function alreadyDone(metadata, key) {
+  return Boolean(metadata?.[key]);
+}
+
 export async function POST(req) {
   const stripe = getStripe();
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -69,6 +76,8 @@ export async function POST(req) {
         const session = event.data.object;
         if (session.status !== "complete") break;
         if (session.mode === "payment" && session.payment_status !== "paid") break;
+        if (alreadyDone(session.metadata, FULFILLED_KEY)) break;
+
         const customerId =
           typeof session.customer === "string"
             ? session.customer
@@ -78,12 +87,21 @@ export async function POST(req) {
             metadata: { player: session.metadata.player },
           });
         }
+
         await fulfillCart({ metadata: session.metadata, orderId: session.id });
+        await stripe.checkout.sessions.update(session.id, {
+          metadata: {
+            ...(session.metadata || {}),
+            [FULFILLED_KEY]: event.id,
+          },
+        });
         break;
       }
       case "invoice.paid": {
         const invoice = event.data.object;
         if (invoice.billing_reason !== "subscription_cycle") break;
+        if (alreadyDone(invoice.metadata, FULFILLED_KEY)) break;
+
         const snapshot = invoice.parent?.subscription_details?.metadata;
         const subscriptionId = subscriptionIdFromInvoice(invoice);
         const metadata =
@@ -92,25 +110,46 @@ export async function POST(req) {
             ? (await stripe.subscriptions.retrieve(subscriptionId)).metadata
             : null);
         if (!metadata) break;
+
         await fulfillCart({ metadata, orderId: invoice.id, rankOnly: true });
+        await stripe.invoices.update(invoice.id, {
+          metadata: {
+            ...(invoice.metadata || {}),
+            [FULFILLED_KEY]: event.id,
+          },
+        });
         break;
       }
       case "customer.subscription.deleted": {
         const subscription = event.data.object;
+        if (alreadyDone(subscription.metadata, REVOKED_KEY)) break;
         await fulfillCart({
           metadata: subscription.metadata,
           orderId: `${subscription.id}:revoke`,
           revoke: true,
+        });
+        await stripe.subscriptions.update(subscription.id, {
+          metadata: {
+            ...(subscription.metadata || {}),
+            [REVOKED_KEY]: event.id,
+          },
         });
         break;
       }
       case "customer.subscription.updated": {
         const subscription = event.data.object;
         if (subscription.status !== "unpaid") break;
+        if (alreadyDone(subscription.metadata, REVOKED_KEY)) break;
         await fulfillCart({
           metadata: subscription.metadata,
           orderId: `${subscription.id}:revoke`,
           revoke: true,
+        });
+        await stripe.subscriptions.update(subscription.id, {
+          metadata: {
+            ...(subscription.metadata || {}),
+            [REVOKED_KEY]: event.id,
+          },
         });
         break;
       }
@@ -119,7 +158,7 @@ export async function POST(req) {
     }
   } catch (err) {
     console.error("Webhook fulfill error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: "Fulfillment failed." }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

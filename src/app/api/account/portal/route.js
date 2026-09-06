@@ -17,19 +17,14 @@ export async function POST(req) {
       query: `metadata["player"]:"${player}"`,
       limit: 1,
     });
-    let customerId = found.data[0]?.id;
-
-    if (!customerId && session.email) {
-      const byEmail = await stripe.customers.list({
-        email: session.email,
-        limit: 1,
-      });
-      customerId = byEmail.data[0]?.id;
-    }
+    const customerId = found.data[0]?.id;
 
     if (!customerId) {
       return NextResponse.json(
-        { error: "No Stripe customer yet. Buy something first, then you can manage it here." },
+        {
+          error:
+            "No Stripe customer linked to this username yet. Buy something first, then manage it here.",
+        },
         { status: 404 },
       );
     }
@@ -43,7 +38,7 @@ export async function POST(req) {
   } catch (err) {
     console.error("portal error:", err);
     return NextResponse.json(
-      { error: err.message || "Could not open billing portal." },
+      { error: "Could not open billing portal." },
       { status: 500 },
     );
   }

@@ -1,6 +1,7 @@
 const buckets = new Map();
 
-export function rateLimit(key, { max = 8, windowMs = 60_000 } = {}) {
+/** Soft per-instance limit. ZedxWebAuth also rate-limits verify (5/min/IP). */
+export function rateLimit(key, { max = 5, windowMs = 60_000 } = {}) {
   const now = Date.now();
   const recent = (buckets.get(key) || []).filter((t) => now - t < windowMs);
   if (recent.length >= max) {

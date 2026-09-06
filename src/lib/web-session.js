@@ -6,8 +6,8 @@ const MAX_AGE = 60 * 60 * 24 * 30;
 
 function secret() {
   return (
-    process.env.ZEDX_AUTH_SECRET ||
     process.env.WEB_SESSION_SECRET ||
+    process.env.ZEDX_AUTH_SECRET ||
     ""
   );
 }
