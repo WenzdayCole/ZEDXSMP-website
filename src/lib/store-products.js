@@ -54,7 +54,7 @@ export const PRODUCTS = {
     name: "ZEDX+ RANK",
     type: "rank",
     mode: "subscription",
-    amountPence: 1500,
+    amountPence: 2000,
     interval: "month",
     removeProduct: "rank-zedxplus-remove",
   },
@@ -63,7 +63,7 @@ export const PRODUCTS = {
     name: "ZEDX+ RANK (1 month)",
     type: "rank",
     mode: "payment",
-    amountPence: 1500,
+    amountPence: 2000,
   },
   "rank-knight": {
     id: "rank-knight",
