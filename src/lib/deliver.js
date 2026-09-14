@@ -42,13 +42,23 @@ export async function deliverToPlugin({
   }
 }
 
-export async function deliverLines({ player, edition, orderId, lines, revoke = false }) {
+export async function deliverLines({
+  player,
+  edition,
+  orderId,
+  lines,
+  revoke = false,
+  rankOnly = false,
+}) {
   for (let i = 0; i < lines.length; i++) {
     const { product, quantity } = lines[i];
     const qty = revoke ? 1 : Math.max(1, Math.min(20, Number(quantity) || 1));
+    const baseId = product.id.replace(/-1mo$/, "");
     const productId = revoke
       ? product.removeProduct || `${product.id}-remove`
-      : product.id;
+      : rankOnly && product.type === "rank"
+        ? `${baseId}-renew`
+        : product.id;
     await deliverToPlugin({
       player,
       product: productId,

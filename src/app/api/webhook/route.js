@@ -44,7 +44,7 @@ async function fulfillCart({ metadata, orderId, revoke = false, rankOnly = false
     throw new Error("No deliverable products on this order.");
   }
 
-  await deliverLines({ player, edition, orderId, lines, revoke });
+  await deliverLines({ player, edition, orderId, lines, revoke, rankOnly });
   return { player, lines };
 }
 
