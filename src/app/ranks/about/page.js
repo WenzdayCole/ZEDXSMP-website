@@ -9,8 +9,8 @@ import AuthNav from "@/app/components/AuthNav";
 import BasketNavButton from "@/app/components/BasketNavButton";
 
 const RANK_STATS = {
-  vip: { homes: "3", ah: "10", orders: "10" },
-  mvp: { homes: "5", ah: "20", orders: "20" },
+  vip: { homes: "4", ah: "20", orders: "20" },
+  mvp: { homes: "6", ah: "30", orders: "30" },
   zedx: { homes: "8", ah: "30", orders: "30" },
   "zedx-plus": { homes: "11", ah: "40", orders: "40", shards: "2×" },
   knight: { homes: "14", ah: "50", orders: "50", shards: "2×" },

@@ -3,7 +3,7 @@
  * Keep in sync with creator.tebex.io/packages (names + GBP prices).
  *
  * Ranks: VIP £4 · MVP £8 · ZEDX £10 · ZEDX+ £20 · Knight £30 (monthly)
- *   VIP: 3 homes, 10 AH/orders · MVP: 5 homes, 20 · ZEDX: 30 · ZEDX+: 40 · Knight: 50
+ *   VIP: 4 homes, 20 AH/orders · MVP: 6 homes, 30 · ZEDX: 8/30 · ZEDX+: 11/40 + 2× shards · Knight: 14/50 + 2× shards
  * Crates: Common £1.19 · Epic £3.59 · Rare £4.79 · Legendary £5.99 · Shadow £6.99 · ZEDX+ Key £12.99
  */
 export const TEBEX_RANK_PACKAGES = {
