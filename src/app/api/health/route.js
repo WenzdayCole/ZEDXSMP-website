@@ -13,11 +13,12 @@ export async function GET() {
   const [store, auth] = await Promise.all([pingStoreHealth(), pingAuthHealth()]);
   const stripe = stripeReady();
   const ok = store.ok && auth.ok;
+  const production = process.env.NODE_ENV === "production";
   return NextResponse.json({
     ok,
     stripe: { configured: stripe },
-    store,
-    auth,
+    store: production ? { ok: store.ok } : store,
+    auth: production ? { ok: auth.ok } : auth,
     checkout: "stripe",
   });
 }

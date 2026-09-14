@@ -7,33 +7,73 @@ port: 28787
 products:
   rank-vip:
     commands:
+      - "lp user {player} parent remove mvp"
+      - "lp user {player} parent remove zedx"
+      - "lp user {player} parent remove zedxplus"
+      - "lp user {player} parent remove knight"
       - "lp user {player} parent add vip"
   rank-mvp:
     commands:
+      - "lp user {player} parent remove vip"
+      - "lp user {player} parent remove zedx"
+      - "lp user {player} parent remove zedxplus"
+      - "lp user {player} parent remove knight"
       - "lp user {player} parent add mvp"
   rank-zedx:
     commands:
+      - "lp user {player} parent remove vip"
+      - "lp user {player} parent remove mvp"
+      - "lp user {player} parent remove zedxplus"
+      - "lp user {player} parent remove knight"
       - "lp user {player} parent add zedx"
   rank-zedxplus:
     commands:
+      - "lp user {player} parent remove vip"
+      - "lp user {player} parent remove mvp"
+      - "lp user {player} parent remove zedx"
+      - "lp user {player} parent remove knight"
       - "lp user {player} parent add zedxplus"
   rank-knight:
     commands:
+      - "lp user {player} parent remove vip"
+      - "lp user {player} parent remove mvp"
+      - "lp user {player} parent remove zedx"
+      - "lp user {player} parent remove zedxplus"
       - "lp user {player} parent add knight"
   rank-vip-1mo:
     commands:
+      - "lp user {player} parent remove mvp"
+      - "lp user {player} parent remove zedx"
+      - "lp user {player} parent remove zedxplus"
+      - "lp user {player} parent remove knight"
       - "lp user {player} parent addtemp vip 30d"
   rank-mvp-1mo:
     commands:
+      - "lp user {player} parent remove vip"
+      - "lp user {player} parent remove zedx"
+      - "lp user {player} parent remove zedxplus"
+      - "lp user {player} parent remove knight"
       - "lp user {player} parent addtemp mvp 30d"
   rank-zedx-1mo:
     commands:
+      - "lp user {player} parent remove vip"
+      - "lp user {player} parent remove mvp"
+      - "lp user {player} parent remove zedxplus"
+      - "lp user {player} parent remove knight"
       - "lp user {player} parent addtemp zedx 30d"
   rank-zedxplus-1mo:
     commands:
+      - "lp user {player} parent remove vip"
+      - "lp user {player} parent remove mvp"
+      - "lp user {player} parent remove zedx"
+      - "lp user {player} parent remove knight"
       - "lp user {player} parent addtemp zedxplus 30d"
   rank-knight-1mo:
     commands:
+      - "lp user {player} parent remove vip"
+      - "lp user {player} parent remove mvp"
+      - "lp user {player} parent remove zedx"
+      - "lp user {player} parent remove zedxplus"
       - "lp user {player} parent addtemp knight 30d"
   rank-vip-remove:
     commands:

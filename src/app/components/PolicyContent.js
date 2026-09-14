@@ -1,23 +1,22 @@
 import { termsSections } from "@/data/terms-of-service";
 import { refundSections } from "@/data/refund-policy";
+import { privacySections } from "@/data/privacy-policy";
+import { cookieSections } from "@/data/cookie-notice";
 
-export function TermsPolicyContent() {
+export function LegalSections({ sections }) {
   return (
     <div className="flex flex-col gap-6">
-      {termsSections.map((section) => (
+      {sections.map((section) => (
         <section key={section.title}>
           <h3 className="mb-3 text-sm font-black uppercase italic tracking-tighter text-purple-300">
             {section.title}
           </h3>
 
-          {section.paragraphs?.map((paragraph) => (
-            <p
-              key={paragraph.slice(0, 40)}
-              className="mb-3 text-[11px] leading-relaxed text-white/60 last:mb-0"
-            >
-              {paragraph}
+          {section.intro && (
+            <p className="mb-3 text-[11px] leading-relaxed text-white/60">
+              {section.intro}
             </p>
-          ))}
+          )}
 
           {section.items?.map(({ term, definition }) => (
             <p
@@ -50,38 +49,9 @@ export function TermsPolicyContent() {
               </ul>
             </div>
           ))}
-        </section>
-      ))}
-    </div>
-  );
-}
 
-export function RefundPolicyContent() {
-  return (
-    <div className="flex flex-col gap-6">
-      {refundSections.map((section) => (
-        <section key={section.title}>
-          <h3 className="mb-3 text-sm font-black uppercase italic tracking-tighter text-purple-300">
-            {section.title}
-          </h3>
-
-          {section.intro && (
-            <p className="mb-3 text-[11px] leading-relaxed text-white/60">
-              {section.intro}
-            </p>
-          )}
-
-          {section.paragraphs?.map((paragraph) => (
-            <p
-              key={paragraph.slice(0, 40)}
-              className="mb-3 text-[11px] leading-relaxed text-white/60 last:mb-0"
-            >
-              {paragraph}
-            </p>
-          ))}
-
-          {section.bullets && (
-            <ul className="space-y-1.5">
+          {section.bullets && !section.subsections && (
+            <ul className="mb-3 space-y-1.5">
               {section.bullets.map((bullet) => (
                 <li
                   key={bullet}
@@ -97,6 +67,15 @@ export function RefundPolicyContent() {
             </ul>
           )}
 
+          {section.paragraphs?.map((paragraph) => (
+            <p
+              key={paragraph.slice(0, 48)}
+              className="mb-3 text-[11px] leading-relaxed text-white/60 last:mb-0"
+            >
+              {paragraph}
+            </p>
+          ))}
+
           {section.contact && (
             <a
               href={section.contact.href}
@@ -111,4 +90,20 @@ export function RefundPolicyContent() {
       ))}
     </div>
   );
+}
+
+export function TermsPolicyContent() {
+  return <LegalSections sections={termsSections} />;
+}
+
+export function RefundPolicyContent() {
+  return <LegalSections sections={refundSections} />;
+}
+
+export function PrivacyPolicyContent() {
+  return <LegalSections sections={privacySections} />;
+}
+
+export function CookieNoticeContent() {
+  return <LegalSections sections={cookieSections} />;
 }

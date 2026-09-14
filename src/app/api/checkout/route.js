@@ -115,6 +115,8 @@ export async function POST(req) {
     };
 
     const stripe = getStripe();
+    // Guest checkout creates a new Stripe customer. Do not look up or cancel
+    // other customers by Minecraft IGN — that would let anyone cancel a rank.
     const checkoutSession = await stripe.checkout.sessions.create({
       mode,
       line_items: stripeLines,

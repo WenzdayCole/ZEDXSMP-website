@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { deliverLines, parseCartMetadata } from "@/lib/deliver";
 import { getProduct } from "@/lib/store-products";
 import { getStripe } from "@/lib/stripe";
+import {
+  cancelOtherRankSubscriptions,
+  stripeObjectId,
+} from "@/lib/stripe-billing";
 
 export const runtime = "nodejs";
 
@@ -41,6 +45,7 @@ async function fulfillCart({ metadata, orderId, revoke = false, rankOnly = false
   }
 
   await deliverLines({ player, edition, orderId, lines, revoke });
+  return { player, lines };
 }
 
 function alreadyDone(metadata, key) {
@@ -78,10 +83,7 @@ export async function POST(req) {
         if (session.mode === "payment" && session.payment_status !== "paid") break;
         if (alreadyDone(session.metadata, FULFILLED_KEY)) break;
 
-        const customerId =
-          typeof session.customer === "string"
-            ? session.customer
-            : session.customer?.id;
+        const customerId = stripeObjectId(session.customer);
         const payer =
           session.metadata?.payer || session.metadata?.player || "";
         if (customerId && payer) {
@@ -94,6 +96,22 @@ export async function POST(req) {
         }
 
         await fulfillCart({ metadata: session.metadata, orderId: session.id });
+        const rankLine =
+          parseCartMetadata(session.metadata)
+            .items.map((item) => getProduct(item.product))
+            .find((product) => product?.type === "rank") ||
+          (getProduct(session.metadata?.product)?.type === "rank"
+            ? getProduct(session.metadata.product)
+            : null);
+        // Gifts must not cancel the payer's own rank. Never cancel by IGN.
+        if (rankLine && session.metadata?.gift !== "1") {
+          const subscriptionId = stripeObjectId(session.subscription);
+          await cancelOtherRankSubscriptions(stripe, {
+            customerId,
+            keepProductId: rankLine.id,
+            keepSubscriptionId: subscriptionId,
+          });
+        }
         await stripe.checkout.sessions.update(session.id, {
           metadata: {
             ...(session.metadata || {}),
@@ -117,6 +135,14 @@ export async function POST(req) {
         if (!metadata) break;
 
         await fulfillCart({ metadata, orderId: invoice.id, rankOnly: true });
+        const rankProduct = getProduct(metadata.product);
+        if (rankProduct?.type === "rank" && metadata.gift !== "1") {
+          await cancelOtherRankSubscriptions(stripe, {
+            customerId: stripeObjectId(invoice.customer),
+            keepProductId: rankProduct.id,
+            keepSubscriptionId: subscriptionId || "",
+          });
+        }
         await stripe.invoices.update(invoice.id, {
           metadata: {
             ...(invoice.metadata || {}),
@@ -128,6 +154,7 @@ export async function POST(req) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object;
         if (alreadyDone(subscription.metadata, REVOKED_KEY)) break;
+        if (subscription.metadata?.zedx_replaced === "1") break;
         await fulfillCart({
           metadata: subscription.metadata,
           orderId: `${subscription.id}:revoke`,
@@ -145,6 +172,7 @@ export async function POST(req) {
         const subscription = event.data.object;
         if (subscription.status !== "unpaid") break;
         if (alreadyDone(subscription.metadata, REVOKED_KEY)) break;
+        if (subscription.metadata?.zedx_replaced === "1") break;
         await fulfillCart({
           metadata: subscription.metadata,
           orderId: `${subscription.id}:revoke`,

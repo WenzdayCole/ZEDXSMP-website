@@ -8,6 +8,10 @@ export default function sitemap() {
     "/ranks/about",
     "/commands",
     "/rules",
+    "/terms",
+    "/refund",
+    "/privacy",
+    "/cookies",
   ];
 
   return routes.map((path) => ({

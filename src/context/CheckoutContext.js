@@ -203,7 +203,14 @@ function CheckoutProviderInner({ children }) {
   }, [items]);
 
   const handleConfirm = useCallback(
-    async ({ username, edition, billing, gift, payer, payerEdition }) => {
+    async ({
+      username,
+      edition,
+      billing,
+      gift,
+      payer,
+      payerEdition,
+    }) => {
       if (!pending) return;
       setProcessing(true);
       setError("");
