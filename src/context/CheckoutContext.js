@@ -14,6 +14,7 @@ import { flushSync } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import CheckoutRedirectScreen from "@/app/components/CheckoutRedirectScreen";
 import BasketBar from "@/app/components/BasketBar";
+import BasketToast from "@/app/components/BasketToast";
 import {
   getProduct,
   onceProductId,
@@ -29,6 +30,25 @@ const CheckoutUsernameModal = dynamic(
 
 const CheckoutContext = createContext(null);
 const BASKET_KEY = "zedx-basket";
+
+function canonicalizeBasket(items) {
+  const merged = [];
+  for (const item of items) {
+    const product = getProduct(item.product);
+    if (!product) continue;
+    const qty = Math.max(1, Math.min(20, Number(item.quantity) || 1));
+    const existing = merged.find((row) => row.product === product.id);
+    if (existing) {
+      existing.quantity = Math.min(20, existing.quantity + qty);
+      continue;
+    }
+    merged.push({
+      product: product.id,
+      quantity: product.type === "rank" ? 1 : qty,
+    });
+  }
+  return merged;
+}
 
 function goToCheckout(url) {
   if (!url) return;
@@ -61,13 +81,15 @@ function CheckoutProviderInner({ children }) {
   const [loadingId, setLoadingId] = useState(null);
   const [items, setItems] = useState([]);
   const [ready, setReady] = useState(false);
+  const [basketOpen, setBasketOpen] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(BASKET_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setItems(parsed);
+        if (Array.isArray(parsed)) setItems(canonicalizeBasket(parsed));
       }
     } catch {
       /* ignore */
@@ -96,40 +118,71 @@ function CheckoutProviderInner({ children }) {
   const addItem = useCallback((productId, quantity = 1) => {
     const product = getProduct(productId);
     if (!product) return;
+    const id = product.id;
+    const qty = Math.max(1, Math.min(20, Number(quantity) || 1));
     setItems((current) => {
       if (product.type === "rank") {
         const withoutRanks = current.filter(
           (item) => getProduct(item.product)?.type !== "rank",
         );
-        return [...withoutRanks, { product: productId, quantity: 1 }];
+        return [...withoutRanks, { product: id, quantity: 1 }];
       }
-      const existing = current.find((item) => item.product === productId);
-      if (!existing) return [...current, { product: productId, quantity }];
+      const existing = current.find((item) => item.product === id);
+      if (!existing) return [...current, { product: id, quantity: qty }];
       return current.map((item) =>
-        item.product === productId
-          ? { ...item, quantity: Math.min(20, item.quantity + quantity) }
+        item.product === id
+          ? { ...item, quantity: Math.min(20, item.quantity + qty) }
           : item,
       );
     });
+    setToast({ productId: id, quantity: qty, at: Date.now() });
   }, []);
 
   const removeItem = useCallback((productId) => {
-    setItems((current) => current.filter((item) => item.product !== productId));
+    const id = getProduct(productId)?.id || productId;
+    setItems((current) => current.filter((item) => item.product !== id));
   }, []);
 
-  const clearBasket = useCallback(() => setItems([]), []);
+  const setQuantity = useCallback((productId, quantity) => {
+    const id = getProduct(productId)?.id || productId;
+    const next = Math.floor(Number(quantity) || 0);
+    if (next <= 0) {
+      setItems((current) => current.filter((item) => item.product !== id));
+      return;
+    }
+    const product = getProduct(id);
+    if (!product) return;
+    const capped = product.type === "rank" ? 1 : Math.min(20, next);
+    setItems((current) =>
+      current.map((item) =>
+        item.product === id ? { ...item, quantity: capped } : item,
+      ),
+    );
+  }, []);
+
+  const clearBasket = useCallback(() => {
+    setItems([]);
+    setBasketOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const checkout = useCallback((productId, itemName, { price, type } = {}) => {
-    if (!getProduct(productId) && type !== "basket") {
+    const product = getProduct(productId);
+    if (!product && type !== "basket") {
       alert(`Unknown product for ${itemName}.`);
       return;
     }
     setLoadingId(itemName);
     setPending({
-      productId,
+      productId: product?.id || productId,
       itemName,
       price: price || "",
-      type: type || getProduct(productId)?.type || "key",
+      type: type || product?.type || "key",
       items: null,
     });
     setError("");
@@ -150,7 +203,7 @@ function CheckoutProviderInner({ children }) {
   }, [items]);
 
   const handleConfirm = useCallback(
-    async ({ username, edition, billing }) => {
+    async ({ username, edition, billing, gift, payer, payerEdition }) => {
       if (!pending) return;
       setProcessing(true);
       setError("");
@@ -172,6 +225,9 @@ function CheckoutProviderInner({ children }) {
             player: username,
             edition,
             items: cartItems,
+            gift: Boolean(gift),
+            payer: payer || "",
+            payerEdition: payerEdition || edition,
           }),
         });
         const data = await response.json();
@@ -195,27 +251,45 @@ function CheckoutProviderInner({ children }) {
   );
 
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPence = items.reduce((sum, item) => {
+    const product = getProduct(item.product);
+    if (!product) return sum;
+    return sum + product.amountPence * item.quantity;
+  }, 0);
 
   const value = useMemo(
     () => ({
+      ready,
       checkout,
       addItem,
       removeItem,
+      setQuantity,
+      clearBasket,
       checkoutBasket,
       items,
       count,
+      totalPence,
+      basketOpen,
+      setBasketOpen,
+      toast,
       isLoading: (name) => loadingId === name,
       loadingId,
       clearCheckoutLoading: () => setLoadingId(null),
       resetCheckoutUi,
     }),
     [
+      ready,
       checkout,
       addItem,
       removeItem,
+      setQuantity,
+      clearBasket,
       checkoutBasket,
       items,
       count,
+      totalPence,
+      basketOpen,
+      toast,
       loadingId,
       resetCheckoutUi,
     ],
@@ -227,6 +301,7 @@ function CheckoutProviderInner({ children }) {
         <CheckoutReturnHandler onReset={resetCheckoutUi} />
       </Suspense>
       {children}
+      <BasketToast />
       <BasketBar />
       <CheckoutUsernameModal
         open={modalOpen}

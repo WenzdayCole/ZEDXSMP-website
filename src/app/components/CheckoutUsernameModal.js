@@ -3,13 +3,99 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  applyEditionPrefix,
+  ignKey,
   isValidMinecraftUsernameFormat,
-  sanitizeMinecraftUsername,
 } from "@/lib/minecraft-username";
 import {
   lockCheckoutPage,
   releaseCheckoutPageLock,
 } from "@/lib/checkout-page-lock";
+
+function EditionToggle({ value, onChange, disabled }) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {[
+        { id: "java", label: "Java Edition", hint: "PC" },
+        { id: "bedrock", label: "Bedrock", hint: "Phone / Xbox" },
+      ].map((opt) => (
+        <button
+          key={opt.id}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(opt.id)}
+          className={`min-h-[52px] rounded-2xl border px-3 py-3 text-left transition-colors active:scale-[0.98] ${
+            value === opt.id
+              ? "border-purple-500 bg-purple-500/20 text-white"
+              : "border-white/10 bg-white/5 text-white/40"
+          }`}
+        >
+          <span className="block text-[10px] font-black uppercase tracking-widest">
+            {opt.label}
+          </span>
+          <span className="text-[10px] text-white/40">{opt.hint}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function UsernameField({
+  id,
+  label,
+  hint,
+  platform,
+  value,
+  onChange,
+  disabled,
+  readOnly,
+  inputRef,
+  onFocus,
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/40"
+      >
+        {label}
+      </label>
+      <div className="relative">
+        {platform === "bedrock" && (
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-mono text-lg font-bold text-cyan-400">
+            .
+          </span>
+        )}
+        <input
+          ref={inputRef}
+          id={id}
+          type="text"
+          inputMode="text"
+          enterKeyHint="go"
+          autoComplete="username"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          maxLength={16}
+          disabled={disabled}
+          readOnly={readOnly}
+          value={value}
+          onFocus={onFocus}
+          onChange={(e) =>
+            onChange(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))
+          }
+          placeholder={platform === "bedrock" ? "Steve" : "YourName"}
+          className={`w-full min-h-[52px] rounded-2xl border border-white/10 bg-white/5 py-3 font-mono text-lg font-bold text-white outline-none transition-colors placeholder:text-white/20 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30 disabled:opacity-50 ${
+            platform === "bedrock" ? "pl-8 pr-4" : "px-4"
+          } ${readOnly ? "cursor-default text-white/80" : ""}`}
+        />
+      </div>
+      {hint && (
+        <p className="mt-2 text-[10px] leading-snug text-white/30">{hint}</p>
+      )}
+    </div>
+  );
+}
 
 export default function CheckoutUsernameModal({
   open,
@@ -22,38 +108,53 @@ export default function CheckoutUsernameModal({
   onConfirm,
 }) {
   const [platform, setPlatform] = useState("java");
+  const [payerPlatform, setPayerPlatform] = useState("java");
   const [billing, setBilling] = useState("monthly");
+  const [gift, setGift] = useState(false);
+  const [giftStep, setGiftStep] = useState(1);
   const [username, setUsername] = useState("");
+  const [payerUsername, setPayerUsername] = useState("");
+  const [loggedInPlayer, setLoggedInPlayer] = useState("");
   const [localError, setLocalError] = useState("");
   const inputRef = useRef(null);
+  const giftToRef = useRef(null);
   const scrollRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
     setLocalError("");
     setBilling("monthly");
+    setGift(false);
+    setGiftStep(1);
     let cancelled = false;
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
         if (data.loggedIn && data.player) {
-          if (String(data.player).startsWith(".")) {
-            setPlatform("bedrock");
-            setUsername(String(data.player).slice(1));
-          } else {
-            setPlatform("java");
-            setUsername(data.player);
-          }
+          const raw = String(data.player);
+          setLoggedInPlayer(raw);
+          const bedrock = raw.startsWith(".");
+          const bare = bedrock ? raw.slice(1) : raw;
+          setPlatform(bedrock ? "bedrock" : "java");
+          setPayerPlatform(bedrock ? "bedrock" : "java");
+          setUsername(bare);
+          setPayerUsername(bare);
         } else {
+          setLoggedInPlayer("");
           setUsername("");
+          setPayerUsername("");
           setPlatform("java");
+          setPayerPlatform("java");
         }
       })
       .catch(() => {
         if (!cancelled) {
+          setLoggedInPlayer("");
           setUsername("");
+          setPayerUsername("");
           setPlatform("java");
+          setPayerPlatform("java");
         }
       });
     const timer = setTimeout(() => inputRef.current?.focus(), 150);
@@ -81,42 +182,99 @@ export default function CheckoutUsernameModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, processing, onClose]);
 
-  function scrollInputIntoView() {
+  function scrollInputIntoView(el) {
     requestAnimationFrame(() => {
-      inputRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+      el?.scrollIntoView({ block: "center", behavior: "smooth" });
     });
   }
 
-  function buildFinalUsername() {
-    let name = sanitizeMinecraftUsername(username);
-    if (platform === "bedrock" && name && !name.startsWith(".")) {
-      name = `.${name}`;
+  function handleGiftToggle(next) {
+    setGift(next);
+    setGiftStep(1);
+    setLocalError("");
+    if (next) {
+      if (!payerUsername && username) setPayerUsername(username);
+      setUsername("");
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } else if (loggedInPlayer) {
+      const bedrock = loggedInPlayer.startsWith(".");
+      setUsername(bedrock ? loggedInPlayer.slice(1) : loggedInPlayer);
     }
-    if (platform === "java" && name.startsWith(".")) {
-      name = name.slice(1);
+  }
+
+  function goToGiftRecipient() {
+    const payerName = applyEditionPrefix(payerUsername, payerPlatform);
+    if (!payerName) {
+      setLocalError("Enter your in-game username.");
+      return false;
     }
-    return name;
+    if (!isValidMinecraftUsernameFormat(payerName)) {
+      setLocalError(
+        "Use 3–16 characters: letters, numbers, and underscore only.",
+      );
+      return false;
+    }
+    setLocalError("");
+    setGiftStep(2);
+    setTimeout(() => giftToRef.current?.focus(), 50);
+    return true;
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    const finalName = buildFinalUsername();
 
-    if (!finalName) {
-      setLocalError("Enter your in-game username.");
+    if (gift && giftStep === 1) {
+      goToGiftRecipient();
       return;
     }
 
-    if (!isValidMinecraftUsernameFormat(finalName)) {
-      setLocalError("Use 3–16 characters: letters, numbers, and underscore only.");
-      return;
+    const recipientName = applyEditionPrefix(username, platform);
+    const payerName = gift
+      ? applyEditionPrefix(payerUsername, payerPlatform)
+      : recipientName;
+
+    if (gift) {
+      if (!recipientName) {
+        setLocalError("Enter their in-game username.");
+        return;
+      }
+      if (!isValidMinecraftUsernameFormat(recipientName)) {
+        setLocalError(
+          "Use 3–16 characters: letters, numbers, and underscore only.",
+        );
+        return;
+      }
+      if (ignKey(payerName) === ignKey(recipientName)) {
+        setLocalError("Gift to a different player, or buy it for yourself.");
+        return;
+      }
+    } else {
+      if (!recipientName) {
+        setLocalError("Enter your in-game username.");
+        return;
+      }
+      if (!isValidMinecraftUsernameFormat(recipientName)) {
+        setLocalError(
+          "Use 3–16 characters: letters, numbers, and underscore only.",
+        );
+        return;
+      }
     }
 
     setLocalError("");
-    onConfirm({ username: finalName, edition: platform, billing });
+    onConfirm({
+      username: recipientName,
+      edition: platform,
+      billing,
+      gift,
+      payer: payerName,
+      payerEdition: gift ? payerPlatform : platform,
+    });
   }
 
   const displayError = localError || error;
+  const payerLocked = Boolean(loggedInPlayer);
+  const askingForRecipient = gift && giftStep === 2;
 
   return (
     <AnimatePresence mode="wait">
@@ -178,12 +336,22 @@ export default function CheckoutUsernameModal({
               )}
 
               <p className="mt-4 text-[13px] leading-relaxed text-white/50 sm:mt-6 sm:text-sm">
-                Enter the username you use on{" "}
-                <span className="font-bold text-purple-300">zedxsmp.fun</span>.
-                Items are delivered to this account in-game.
+                {askingForRecipient
+                  ? "Who is the gift for?"
+                  : gift
+                    ? "Enter your in-game username. You pay — they get the rank."
+                    : (
+                      <>
+                        Enter the username you use on{" "}
+                        <span className="font-bold text-purple-300">
+                          zedxsmp.fun
+                        </span>
+                        . Items are delivered to this account in-game.
+                      </>
+                    )}
               </p>
 
-              {isRank && (
+              {isRank && !askingForRecipient && (
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5">
                   {[
                     { id: "monthly", label: "Pay monthly", hint: "Recurring" },
@@ -209,83 +377,126 @@ export default function CheckoutUsernameModal({
                 </div>
               )}
 
-              <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6">
-                {[
-                  { id: "java", label: "Java Edition", hint: "PC" },
-                  { id: "bedrock", label: "Bedrock", hint: "Phone / Xbox" },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    disabled={processing}
-                    onClick={() => setPlatform(opt.id)}
-                    className={`min-h-[52px] rounded-2xl border px-3 py-3 text-left transition-colors active:scale-[0.98] ${
-                      platform === opt.id
-                        ? "border-purple-500 bg-purple-500/20 text-white"
-                        : "border-white/10 bg-white/5 text-white/40"
-                    }`}
-                  >
-                    <span className="block text-[10px] font-black uppercase tracking-widest">
-                      {opt.label}
-                    </span>
-                    <span className="text-[10px] text-white/40">{opt.hint}</span>
-                  </button>
-                ))}
-              </div>
-
-              <form onSubmit={handleSubmit} className="mt-4 sm:mt-5">
-                <label
-                  htmlFor="mc-username"
-                  className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/40"
-                >
-                  In-game username
-                </label>
-                <div className="relative">
-                  {platform === "bedrock" && (
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-mono text-lg font-bold text-cyan-400">
-                      .
-                    </span>
-                  )}
-                  <input
-                    ref={inputRef}
-                    id="mc-username"
-                    type="text"
-                    inputMode="text"
-                    enterKeyHint="go"
-                    autoComplete="username"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    maxLength={16}
-                    disabled={processing}
-                    value={username}
-                    onFocus={scrollInputIntoView}
-                    onChange={(e) => {
-                      setUsername(
-                        e.target.value.replace(/[^a-zA-Z0-9_]/g, ""),
-                      );
-                      setLocalError("");
-                    }}
-                    placeholder={platform === "bedrock" ? "Steve" : "YourName"}
-                    className={`w-full min-h-[52px] rounded-2xl border border-white/10 bg-white/5 py-3 font-mono text-lg font-bold text-white outline-none transition-colors placeholder:text-white/20 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30 disabled:opacity-50 ${
-                      platform === "bedrock" ? "pl-8 pr-4" : "px-4"
-                    }`}
-                  />
+              {!askingForRecipient && (
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5">
+                  {[
+                    { id: false, label: "For me", hint: "My account" },
+                    { id: true, label: "Buy as a gift", hint: "Someone else" },
+                  ].map((opt) => (
+                    <button
+                      key={String(opt.id)}
+                      type="button"
+                      disabled={processing}
+                      onClick={() => handleGiftToggle(opt.id)}
+                      className={`min-h-[52px] rounded-2xl border px-3 py-3 text-left transition-colors active:scale-[0.98] ${
+                        gift === opt.id
+                          ? "border-purple-500 bg-purple-500/20 text-white"
+                          : "border-white/10 bg-white/5 text-white/40"
+                      }`}
+                    >
+                      <span className="block text-[10px] font-black uppercase tracking-widest">
+                        {opt.label}
+                      </span>
+                      <span className="text-[10px] text-white/40">{opt.hint}</span>
+                    </button>
+                  ))}
                 </div>
-                <p className="mt-2 text-[10px] leading-snug text-white/30">
-                  {platform === "bedrock"
-                    ? "Bedrock players: we add the dot prefix automatically."
-                    : "Use your exact Java username (no dot)."}
-                </p>
+              )}
+
+              <form onSubmit={handleSubmit} className="mt-4 space-y-4 sm:mt-5">
+                {gift && giftStep === 1 && (
+                  <>
+                    <EditionToggle
+                      value={payerPlatform}
+                      onChange={setPayerPlatform}
+                      disabled={processing || payerLocked}
+                    />
+                    <UsernameField
+                      id="mc-payer"
+                      label="Your username"
+                      hint={
+                        payerPlatform === "bedrock"
+                          ? "Bedrock players: we add the dot prefix automatically."
+                          : "Use your exact Java username (no dot)."
+                      }
+                      platform={payerPlatform}
+                      value={payerUsername}
+                      onChange={(v) => {
+                        setPayerUsername(v);
+                        setLocalError("");
+                      }}
+                      disabled={processing}
+                      readOnly={payerLocked}
+                      inputRef={inputRef}
+                      onFocus={() => scrollInputIntoView(inputRef.current)}
+                    />
+                  </>
+                )}
+
+                {askingForRecipient && (
+                  <>
+                    <EditionToggle
+                      value={platform}
+                      onChange={setPlatform}
+                      disabled={processing}
+                    />
+                    <UsernameField
+                      id="mc-gift-to"
+                      label="Their username"
+                      hint={
+                        platform === "bedrock"
+                          ? "We add their Bedrock dot prefix automatically."
+                          : "Their exact Java username (no dot)."
+                      }
+                      platform={platform}
+                      value={username}
+                      onChange={(v) => {
+                        setUsername(v);
+                        setLocalError("");
+                      }}
+                      disabled={processing}
+                      inputRef={giftToRef}
+                      onFocus={() => scrollInputIntoView(giftToRef.current)}
+                    />
+                  </>
+                )}
+
+                {!gift && (
+                  <>
+                    <EditionToggle
+                      value={platform}
+                      onChange={setPlatform}
+                      disabled={processing}
+                    />
+                    <UsernameField
+                      id="mc-username"
+                      label="In-game username"
+                      hint={
+                        platform === "bedrock"
+                          ? "Bedrock players: we add the dot prefix automatically."
+                          : "Use your exact Java username (no dot)."
+                      }
+                      platform={platform}
+                      value={username}
+                      onChange={(v) => {
+                        setUsername(v);
+                        setLocalError("");
+                      }}
+                      disabled={processing}
+                      inputRef={inputRef}
+                      onFocus={() => scrollInputIntoView(inputRef.current)}
+                    />
+                  </>
+                )}
 
                 {displayError && (
-                  <p className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-medium leading-relaxed text-red-300 whitespace-pre-line">
+                  <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-medium leading-relaxed text-red-300 whitespace-pre-line">
                     {displayError}
                   </p>
                 )}
 
                 {processing && (
-                  <p className="mt-4 text-center text-[10px] leading-relaxed text-white/40">
+                  <p className="text-center text-[10px] leading-relaxed text-white/40">
                     You&apos;ll complete payment on Stripe&apos;s secure page.
                     Card, Apple Pay and Google Pay are available. We&apos;ll
                     bring you back here when done.
@@ -295,20 +506,37 @@ export default function CheckoutUsernameModal({
                 <button
                   type="submit"
                   disabled={processing}
-                  className="mt-5 w-full min-h-[52px] rounded-2xl bg-white py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-black transition-colors active:scale-[0.99] hover:bg-purple-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:mt-6 sm:tracking-[0.25em]"
+                  className="w-full min-h-[52px] rounded-2xl bg-white py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-black transition-colors active:scale-[0.99] hover:bg-purple-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:tracking-[0.25em]"
                 >
                   {processing
                     ? "Redirecting to Stripe…"
-                    : "Continue to payment"}
+                    : gift && giftStep === 1
+                      ? "Continue to gift payment"
+                      : "Continue to payment"}
                 </button>
-                <button
-                  type="button"
-                  disabled={processing}
-                  onClick={onClose}
-                  className="mt-4 flex min-h-[44px] w-full items-center justify-center py-2 text-[10px] font-bold uppercase tracking-widest text-white/35 transition-colors active:text-white hover:text-white/60"
-                >
-                  Cancel
-                </button>
+                {askingForRecipient ? (
+                  <button
+                    type="button"
+                    disabled={processing}
+                    onClick={() => {
+                      setLocalError("");
+                      setGiftStep(1);
+                      setTimeout(() => inputRef.current?.focus(), 50);
+                    }}
+                    className="flex min-h-[44px] w-full items-center justify-center py-2 text-[10px] font-bold uppercase tracking-widest text-white/35 transition-colors active:text-white hover:text-white/60"
+                  >
+                    Back
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={processing}
+                    onClick={onClose}
+                    className="flex min-h-[44px] w-full items-center justify-center py-2 text-[10px] font-bold uppercase tracking-widest text-white/35 transition-colors active:text-white hover:text-white/60"
+                  >
+                    Cancel
+                  </button>
+                )}
               </form>
             </div>
           </motion.div>

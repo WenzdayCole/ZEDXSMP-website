@@ -33,7 +33,7 @@ export default function HomeHeroSticker() {
     >
       <span className="sale-sticker-inner">
         <span className="sale-sticker-badge">Sale!</span>
-        <span className="sale-sticker-off">Up to 40% off</span>
+        <span className="sale-sticker-off">Up to 33% off</span>
         <span className="sale-sticker-sub">Ranks</span>
       </span>
     </Link>

@@ -8,6 +8,7 @@ import SiteFooter from "@/app/components/SiteFooter";
 export default function AccountPage() {
   const router = useRouter();
   const [me, setMe] = useState(null);
+  const [canManage, setCanManage] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -23,6 +24,14 @@ export default function AccountPage() {
       })
       .catch(() => router.replace("/login"));
   }, [router]);
+
+  useEffect(() => {
+    if (!me) return;
+    fetch("/api/account/portal")
+      .then((res) => res.json())
+      .then((data) => setCanManage(Boolean(data.canManage)))
+      .catch(() => setCanManage(false));
+  }, [me]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -71,14 +80,16 @@ export default function AccountPage() {
       {me.email && <p className="mt-1 text-sm text-white/40">{me.email}</p>}
 
       <div className="mt-8 space-y-3">
-        <button
-          type="button"
-          onClick={openPortal}
-          disabled={busy}
-          className="w-full min-h-[52px] rounded-2xl bg-white text-[11px] font-black uppercase tracking-[0.2em] text-black hover:bg-purple-500 hover:text-white disabled:opacity-50"
-        >
-          {busy ? "Opening…" : "Manage / cancel subscription"}
-        </button>
+        {canManage && (
+          <button
+            type="button"
+            onClick={openPortal}
+            disabled={busy}
+            className="w-full min-h-[52px] rounded-2xl bg-white text-[11px] font-black uppercase tracking-[0.2em] text-black hover:bg-purple-500 hover:text-white disabled:opacity-50"
+          >
+            {busy ? "Opening…" : "Manage / cancel subscription"}
+          </button>
+        )}
         <button
           type="button"
           onClick={logout}
@@ -97,7 +108,9 @@ export default function AccountPage() {
       <p className="mt-8 text-xs leading-relaxed text-white/40">
         Change your website password in-game with{" "}
         <span className="font-mono text-white/70">/changepass</span>. Receipts
-        come from Stripe. Rank delivery is handled on the SMP after payment.
+        go to whoever paid. A monthly gift can only be cancelled by the buyer
+        after they log in with their own username. One-month ranks expire
+        in-game and have nothing to cancel.
       </p>
       <SiteFooter className="mt-16" />
     </main>

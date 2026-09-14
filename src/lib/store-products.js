@@ -6,7 +6,7 @@ export const PRODUCTS = {
     name: "VIP RANK",
     type: "rank",
     mode: "subscription",
-    amountPence: 299,
+    amountPence: 400,
     interval: "month",
     removeProduct: "rank-vip-remove",
   },
@@ -15,14 +15,14 @@ export const PRODUCTS = {
     name: "VIP RANK (1 month)",
     type: "rank",
     mode: "payment",
-    amountPence: 299,
+    amountPence: 400,
   },
   "rank-mvp": {
     id: "rank-mvp",
     name: "MVP RANK",
     type: "rank",
     mode: "subscription",
-    amountPence: 499,
+    amountPence: 800,
     interval: "month",
     removeProduct: "rank-mvp-remove",
   },
@@ -31,14 +31,30 @@ export const PRODUCTS = {
     name: "MVP RANK (1 month)",
     type: "rank",
     mode: "payment",
-    amountPence: 499,
+    amountPence: 800,
+  },
+  "rank-zedx": {
+    id: "rank-zedx",
+    name: "ZEDX RANK",
+    type: "rank",
+    mode: "subscription",
+    amountPence: 1000,
+    interval: "month",
+    removeProduct: "rank-zedx-remove",
+  },
+  "rank-zedx-1mo": {
+    id: "rank-zedx-1mo",
+    name: "ZEDX RANK (1 month)",
+    type: "rank",
+    mode: "payment",
+    amountPence: 1000,
   },
   "rank-zedxplus": {
     id: "rank-zedxplus",
     name: "ZEDX+ RANK",
     type: "rank",
     mode: "subscription",
-    amountPence: 999,
+    amountPence: 1500,
     interval: "month",
     removeProduct: "rank-zedxplus-remove",
   },
@@ -47,7 +63,23 @@ export const PRODUCTS = {
     name: "ZEDX+ RANK (1 month)",
     type: "rank",
     mode: "payment",
-    amountPence: 999,
+    amountPence: 1500,
+  },
+  "rank-knight": {
+    id: "rank-knight",
+    name: "KNIGHT RANK",
+    type: "rank",
+    mode: "subscription",
+    amountPence: 3000,
+    interval: "month",
+    removeProduct: "rank-knight-remove",
+  },
+  "rank-knight-1mo": {
+    id: "rank-knight-1mo",
+    name: "KNIGHT RANK (1 month)",
+    type: "rank",
+    mode: "payment",
+    amountPence: 3000,
   },
   "key-common": {
     id: "key-common",
@@ -77,9 +109,9 @@ export const PRODUCTS = {
     mode: "payment",
     amountPence: 599,
   },
-  "key-amethyst": {
-    id: "key-amethyst",
-    name: "Amethyst Crate Key",
+  "key-shadow": {
+    id: "key-shadow",
+    name: "Shadow Crate Key",
     type: "key",
     mode: "payment",
     amountPence: 699,
@@ -96,7 +128,9 @@ export const PRODUCTS = {
 export const RANK_SLUG_TO_PRODUCT = {
   vip: "rank-vip",
   mvp: "rank-mvp",
+  zedx: "rank-zedx",
   "zedx-plus": "rank-zedxplus",
+  knight: "rank-knight",
 };
 
 export const KEY_NAME_TO_PRODUCT = {
@@ -104,12 +138,19 @@ export const KEY_NAME_TO_PRODUCT = {
   Epic: "key-epic",
   Rare: "key-rare",
   Legendary: "key-legendary",
-  Amethyst: "key-amethyst",
+  Shadow: "key-shadow",
+  Amethyst: "key-shadow",
   "ZEDX+": "key-zedxplus",
 };
 
+/** Old store/webhook ids still resolve to the current product. */
+const PRODUCT_ALIASES = {
+  "key-amethyst": "key-shadow",
+};
+
 export function getProduct(id) {
-  return PRODUCTS[id] || null;
+  if (!id) return null;
+  return PRODUCTS[id] || PRODUCTS[PRODUCT_ALIASES[id]] || null;
 }
 
 export function onceProductId(monthlyId) {

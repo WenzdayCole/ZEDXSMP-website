@@ -6,7 +6,14 @@ function storeSecret() {
   return (process.env.ZEDX_STORE_SECRET || "").trim();
 }
 
-export async function deliverToPlugin({ player, product, orderId, lineId, edition }) {
+export async function deliverToPlugin({
+  player,
+  product,
+  orderId,
+  lineId,
+  edition,
+  quantity = 1,
+}) {
   const url = storeUrl();
   const secret = storeSecret();
   if (!url || !secret) {
@@ -22,8 +29,9 @@ export async function deliverToPlugin({ player, product, orderId, lineId, editio
     body: JSON.stringify({
       player,
       product,
-      order_id: orderId,
-      line_id: lineId,
+      order_id: lineId || orderId,
+      line_id: lineId || "",
+      quantity,
       edition,
     }),
   });
@@ -37,19 +45,18 @@ export async function deliverToPlugin({ player, product, orderId, lineId, editio
 export async function deliverLines({ player, edition, orderId, lines, revoke = false }) {
   for (let i = 0; i < lines.length; i++) {
     const { product, quantity } = lines[i];
-    const qty = revoke ? 1 : quantity || 1;
-    for (let n = 0; n < qty; n++) {
-      const productId = revoke
-        ? product.removeProduct || `${product.id}-remove`
-        : product.id;
-      await deliverToPlugin({
-        player,
-        product: productId,
-        orderId,
-        lineId: `${orderId}:${productId}:${i}:${n}`,
-        edition,
-      });
-    }
+    const qty = revoke ? 1 : Math.max(1, Math.min(20, Number(quantity) || 1));
+    const productId = revoke
+      ? product.removeProduct || `${product.id}-remove`
+      : product.id;
+    await deliverToPlugin({
+      player,
+      product: productId,
+      orderId,
+      lineId: `${orderId}:${productId}:${i}`,
+      quantity: qty,
+      edition,
+    });
   }
 }
 

@@ -82,9 +82,14 @@ export async function POST(req) {
           typeof session.customer === "string"
             ? session.customer
             : session.customer?.id;
-        if (customerId && session.metadata?.player) {
+        const payer =
+          session.metadata?.payer || session.metadata?.player || "";
+        if (customerId && payer) {
           await stripe.customers.update(customerId, {
-            metadata: { player: session.metadata.player },
+            metadata: {
+              payer,
+              player: payer,
+            },
           });
         }
 

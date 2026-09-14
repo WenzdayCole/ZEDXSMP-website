@@ -5,11 +5,15 @@ import { useCheckout } from "@/context/CheckoutContext";
 import { useCheckoutPageRestore } from "@/hooks/useCheckoutPageRestore";
 import { monthlyRanks as rankDetails } from "@/data/monthly-ranks";
 import SiteFooter from "@/app/components/SiteFooter";
+import AuthNav from "@/app/components/AuthNav";
+import BasketNavButton from "@/app/components/BasketNavButton";
 
 const RANK_STATS = {
-  vip: { homes: "3", ah: "20", orders: "20" },
-  mvp: { homes: "5", ah: "30", orders: "30" },
-  "zedx-plus": { homes: "7", ah: "40", orders: "40", shards: "2×" },
+  vip: { homes: "3", ah: "10", orders: "10" },
+  mvp: { homes: "5", ah: "20", orders: "20" },
+  zedx: { homes: "8", ah: "30", orders: "30" },
+  "zedx-plus": { homes: "11", ah: "40", orders: "40", shards: "2×" },
+  knight: { homes: "14", ah: "50", orders: "50", shards: "2×" },
 };
 
 function PerkCheck({ accent }) {
@@ -240,9 +244,15 @@ export default function AboutPage() {
             </span>{" "}
             Back to store
           </Link>
-          <h1 className="mt-6 text-5xl font-black uppercase italic leading-none tracking-tighter md:text-7xl">
-            Rank <span className="text-purple-500">Details</span>
-          </h1>
+          <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-5xl font-black uppercase italic leading-none tracking-tighter md:text-7xl">
+              Rank <span className="text-purple-500">Details</span>
+            </h1>
+            <div className="flex shrink-0 items-center gap-3">
+              <BasketNavButton />
+              <AuthNav />
+            </div>
+          </div>
           <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/55">
             Perks, limits, and pricing for each monthly rank. Purchase through
             Stripe at checkout. Delivery runs on the SMP after payment.

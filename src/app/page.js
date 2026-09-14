@@ -58,7 +58,7 @@ const SMP_FEATURES = [
     title: "Ranks & Perks",
     desc: "Optional monthly ranks that unlock homes, auction slots, and exclusive commands.",
     points: [
-      "VIP, MVP, and ZEDX+ tiers with in-game name tags",
+      "VIP, MVP, ZEDX, ZEDX+, and Knight tiers with in-game name tags",
       "More homes, AH listings, and QoL commands per rank",
       "Crate keys and cosmetics available in the store",
     ],
