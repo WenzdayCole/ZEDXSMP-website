@@ -1,7 +1,6 @@
 import { termsSections } from "@/data/terms-of-service";
 import { refundSections } from "@/data/refund-policy";
 import { privacySections } from "@/data/privacy-policy";
-import { cookieSections } from "@/data/cookie-notice";
 
 export function LegalSections({ sections }) {
   return (
@@ -102,8 +101,4 @@ export function RefundPolicyContent() {
 
 export function PrivacyPolicyContent() {
   return <LegalSections sections={privacySections} />;
-}
-
-export function CookieNoticeContent() {
-  return <LegalSections sections={cookieSections} />;
 }

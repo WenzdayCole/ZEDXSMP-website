@@ -79,7 +79,7 @@ export const privacySections = [
   {
     title: "9. Cookies",
     paragraphs: [
-      "See our Cookie Notice at /cookies for details of the session cookie, Stripe’s own cookies on checkout, and what we do not use.",
+      "If you log in, we set a session cookie so the shop can keep you signed in. Stripe may set its own cookies on Stripe Checkout. The basket is saved in your browser. We do not use advertising or analytics cookies.",
     ],
   },
 ];

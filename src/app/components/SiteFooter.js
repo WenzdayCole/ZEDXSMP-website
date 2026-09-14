@@ -7,7 +7,6 @@ const FOOTER_LINKS = [
   { href: "/terms", label: "Terms" },
   { href: "/refund", label: "Refunds" },
   { href: "/privacy", label: "Privacy" },
-  { href: "/cookies", label: "Cookies" },
   { href: "/login", label: "Login" },
 ];
 

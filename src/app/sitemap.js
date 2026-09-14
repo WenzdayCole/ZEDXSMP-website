@@ -11,7 +11,6 @@ export default function sitemap() {
     "/terms",
     "/refund",
     "/privacy",
-    "/cookies",
   ];
 
   return routes.map((path) => ({
