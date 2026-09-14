@@ -355,7 +355,7 @@ export default function CheckoutUsernameModal({
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5">
                   {[
                     { id: "monthly", label: "Pay monthly", hint: "Recurring" },
-                    { id: "once", label: "1 month only", hint: "No auto-renew" },
+                    { id: "once", label: "1 month only", hint: "Expires after 30 days" },
                   ].map((opt) => (
                     <button
                       key={opt.id}
