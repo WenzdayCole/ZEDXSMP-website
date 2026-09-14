@@ -139,10 +139,10 @@ export default function HomePageClient() {
             Join the Discord Community
           </span>
         </a>
-        <nav className="flex items-center justify-center">
-          <div className="relative flex gap-1 rounded-full border border-white/15 bg-white/5 p-1 backdrop-blur-xl">
+        <nav className="flex w-full items-center justify-center">
+          <div className="relative flex w-full max-w-full flex-wrap items-center justify-center gap-0.5 rounded-2xl border border-white/15 bg-white/5 p-1 backdrop-blur-xl sm:w-auto sm:flex-nowrap sm:rounded-full">
             <span
-              className="pointer-events-none absolute inset-0 animate-nav-ring-pulse rounded-full ring-1 ring-purple-400/50"
+              className="pointer-events-none absolute inset-0 animate-nav-ring-pulse rounded-2xl ring-1 ring-purple-400/50 sm:rounded-full"
               aria-hidden
             />
             {["Rules", "Ranks", "Keys", "Commands", "Login"].map((item) => {
@@ -158,7 +158,7 @@ export default function HomePageClient() {
                 <Link
                   key={item}
                   href={path}
-                  className="relative z-10 rounded-full px-5 py-3 text-[9px] font-black uppercase tracking-[0.35em] text-white/70 transition-colors duration-500 hover:bg-white/10 hover:text-white sm:px-6 sm:text-[10px] sm:tracking-[0.4em]"
+                  className="relative z-10 whitespace-nowrap rounded-full px-2.5 py-2.5 text-[9px] font-black uppercase tracking-[0.12em] text-white/70 transition-colors duration-500 hover:bg-white/10 hover:text-white sm:px-6 sm:py-3 sm:text-[10px] sm:tracking-[0.4em]"
                 >
                   {item}
                 </Link>
